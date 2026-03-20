@@ -1,0 +1,47 @@
+.admin-dashboard {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.admin-dashboard table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-dashboard th, .admin-dashboard td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-dashboard th {
+  background-color: #f2f2f2;
+}
+
+.filter-container {
+  margin-bottom: 20px;
+}
+
+.filter-container input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.license-card {
+  border: 1px solid #eaeaea;
+  border-radius: 5px;
+  padding: 15px;
+  margin: 10px;
+  display: inline-block;
+  width: 30%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.license-card h3 {
+  margin: 0;
+}
+
+.license-card p {
+  color: #666;
+}
