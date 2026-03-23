@@ -95,22 +95,14 @@ class MC_EMS_Product_List_Table extends WP_List_Table {
 		$nonce      = wp_create_nonce( 'mc_ems_product_action' );
 		$base       = admin_url( 'admin.php?page=mc-ems-products&nonce=' . $nonce );
 
-		$buttons  = sprintf(
-			'<button type="button" class="button button-small mc-ems-edit-product" '
-			. 'data-product-id="%d" data-duration="%d">%s</button> ',
-			$product_id,
-			(int) $item['duration_days'],
-			esc_html__( 'Edit', 'mc-ems-license-manager' )
-		);
-
-		$buttons .= sprintf(
+		$delete_btn = sprintf(
 			'<a href="%s" class="button button-small button-link-delete" onclick="return confirm(\'%s\')">%s</a>',
 			esc_url( $base . '&action=delete_product&product_id=' . $product_id ),
 			esc_js( __( 'Are you sure you want to remove this product association?', 'mc-ems-license-manager' ) ),
 			esc_html__( 'Delete', 'mc-ems-license-manager' )
 		);
 
-		return $buttons;
+		return $delete_btn;
 	}
 
 	/**
