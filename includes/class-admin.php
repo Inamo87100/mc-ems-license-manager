@@ -36,6 +36,7 @@ class MC_EMS_Admin {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_mc_ems_revoke_license', array( $this, 'ajax_revoke_license' ) );
+		add_action( 'wp_ajax_mc_ems_edit_product', array( $this, 'ajax_edit_product' ) );
 	}
 
 	/**
@@ -389,6 +390,39 @@ class MC_EMS_Admin {
 
 		$this->license_manager->update_status( (int) $license->id, 'inactive' );
 		wp_send_json_success( array( 'message' => __( 'License revoked.', 'mc-ems-license-manager' ) ) );
+	}
+
+	/**
+	 * AJAX handler: edit product license duration.
+	 *
+	 * @return void
+	 */
+	public function ajax_edit_product() {
+		check_ajax_referer( 'mc_ems_edit_product', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$product_id    = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$duration_days = isset( $_POST['duration_days'] ) ? absint( $_POST['duration_days'] ) : 0;
+
+		if ( ! $product_id || ! $duration_days ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid product or duration.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$result = $this->product_manager->update_product( $product_id, $duration_days );
+
+		if ( $result ) {
+			wp_send_json_success(
+				array(
+					'message'       => __( 'Product updated successfully.', 'mc-ems-license-manager' ),
+					'duration_days' => $duration_days,
+				)
+			);
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to update product.', 'mc-ems-license-manager' ) ) );
+		}
 	}
 
 	/**

@@ -77,6 +77,43 @@
             }
         });
 
+        // Save edited product via AJAX.
+        $('#mc-ems-edit-product-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var productId    = $('#edit_product_id').val();
+            var durationDays = $('#edit_duration_days').val();
+            var nonce        = $('#mc_ems_edit_product_nonce').val();
+            var i18n         = (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin.i18n : {};
+
+            $.ajax({
+                url: (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin.ajaxurl : ajaxurl,
+                type: 'POST',
+                data: {
+                    action:        'mc_ems_edit_product',
+                    product_id:    productId,
+                    duration_days: durationDays,
+                    nonce:         nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update the duration cell in the table row without a page reload.
+                        $('.mc-ems-edit-product[data-product-id="' + productId + '"]')
+                            .data('duration', parseInt(durationDays, 10))
+                            .closest('tr')
+                            .find('.column-duration_days')
+                            .text(durationDays);
+                        $modal.hide();
+                    } else {
+                        alert((response.data && response.data.message) || i18n.error || 'Error occurred. Please try again.');
+                    }
+                },
+                error: function() {
+                    alert(i18n.error || 'Error occurred. Please try again.');
+                }
+            });
+        });
+
     });
 
 })(jQuery);
