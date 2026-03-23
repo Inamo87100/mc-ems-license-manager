@@ -38,9 +38,10 @@ class MC_EMS_License_Manager {
 	 * @param int         $user_id    WordPress user ID.
 	 * @param int|null    $duration   Duration in days. NULL = never expires.
 	 * @param string|null $site_url   Site URL to bind the license to.
+	 * @param int|null    $product_id WooCommerce product ID (optional).
 	 * @return int|false Inserted license ID on success, false on failure.
 	 */
-	public function create_license( $user_id, $duration = null, $site_url = null ) {
+	public function create_license( $user_id, $duration = null, $site_url = null, $product_id = null ) {
 		global $wpdb;
 
 		$user_id = absint( $user_id );
@@ -78,9 +79,35 @@ class MC_EMS_License_Manager {
 
 		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s' );
 
+		// Only include product_id when it is explicitly set to avoid inserting 0 instead of NULL.
+		if ( ! is_null( $product_id ) ) {
+			$data['product_id'] = absint( $product_id );
+			$formats[]          = '%d';
+		}
+
 		$result = $wpdb->insert( MC_EMS_Database::table_name(), $data, $formats );
 
 		return $result ? $wpdb->insert_id : false;
+	}
+
+	/**
+	 * Get an existing license for a specific user and product.
+	 *
+	 * @param int $user_id    WordPress user ID.
+	 * @param int $product_id WooCommerce product ID.
+	 * @return array|null License row, or null if not found.
+	 */
+	public function get_license_by_user_product( $user_id, $product_id ) {
+		global $wpdb;
+
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE user_id = %d AND product_id = %d LIMIT 1',
+				absint( $user_id ),
+				absint( $product_id )
+			),
+			ARRAY_A
+		);
 	}
 
 	/**

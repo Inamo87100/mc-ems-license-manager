@@ -22,18 +22,22 @@ defined( 'MC_EMS_LICENSE_MANAGER_URL' ) || define( 'MC_EMS_LICENSE_MANAGER_URL',
 // Include classes
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-database.php';
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-license-manager.php';
+require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-product-manager.php';
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-license-list-table.php';
+require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-product-list-table.php';
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-admin.php';
+require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-woocommerce-integration.php';
 
-// Activation hook – create DB table.
+// Activation hook – create DB tables.
 function mc_ems_license_manager_activate() {
 	MC_EMS_Database::create_table();
+	MC_EMS_Database::create_product_licenses_table();
 }
 register_activation_hook( MC_EMS_LICENSE_MANAGER_FILE, 'mc_ems_license_manager_activate' );
 
-// Deactivation hook – nothing to clean up (table kept for data safety).
+// Deactivation hook – nothing to clean up (tables kept for data safety).
 function mc_ems_license_manager_deactivate() {
-	// Intentionally left empty; table is preserved across deactivations.
+	// Intentionally left empty; tables are preserved across deactivations.
 }
 register_deactivation_hook( MC_EMS_LICENSE_MANAGER_FILE, 'mc_ems_license_manager_deactivate' );
 
@@ -48,9 +52,15 @@ function mc_ems_license_manager_init() {
 	);
 
 	$license_manager = new MC_EMS_License_Manager();
+	$product_manager = new MC_EMS_Product_Manager();
+
+	// Initialize WooCommerce integration when WooCommerce is active.
+	if ( function_exists( 'WC' ) ) {
+		new MC_EMS_WooCommerce_Integration( $license_manager, $product_manager );
+	}
 
 	if ( is_admin() ) {
-		new MC_EMS_Admin( $license_manager );
+		new MC_EMS_Admin( $license_manager, $product_manager );
 	}
 }
 ?>

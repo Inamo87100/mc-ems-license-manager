@@ -1,6 +1,6 @@
 /* MC EMS License Manager - Admin Styles */
 
-.mc-ems-admin .mc-ems-create-license {
+.mc-ems-admin .mc-ems-card {
 	margin-top: 20px;
 	margin-bottom: 20px;
 	padding: 20px;
@@ -9,7 +9,7 @@
 	box-shadow: 0 1px 1px rgba(0,0,0,.04);
 }
 
-.mc-ems-admin .mc-ems-create-license h2 {
+.mc-ems-admin .mc-ems-card h2 {
 	margin-top: 0;
 }
 
@@ -59,4 +59,43 @@
 /* Required field indicator */
 .required {
 	color: #d63638;
+}
+
+/* Edit modal overlay */
+.mc-ems-edit-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.mc-ems-edit-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.mc-ems-edit-modal__box {
+	position: relative;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+	padding: 24px 28px;
+	min-width: 320px;
+	max-width: 480px;
+	width: 100%;
+	border-radius: 4px;
+}
+
+.mc-ems-edit-modal__box h3 {
+	margin-top: 0;
+}
+
+.mc-ems-edit-modal__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 0;
 }

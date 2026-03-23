@@ -48,6 +48,35 @@
             $('.mc-ems-admin .notice.is-dismissible').fadeOut(500);
         }, 4000);
 
+        // ---------------------------------------------------------------
+        // Product inline edit modal
+        // ---------------------------------------------------------------
+
+        var $modal = $('#mc-ems-edit-modal');
+
+        // Open modal when "Edit" button is clicked on a product row.
+        $(document).on('click', '.mc-ems-edit-product', function() {
+            var productId = $(this).data('product-id');
+            var duration  = $(this).data('duration');
+
+            $('#edit_product_id').val(productId);
+            $('#edit_duration_days').val(duration);
+
+            $modal.show();
+        });
+
+        // Close modal on backdrop click or Cancel button.
+        $modal.on('click', '.mc-ems-edit-modal__backdrop, .mc-ems-edit-modal__cancel', function() {
+            $modal.hide();
+        });
+
+        // Close modal on Escape key.
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $modal.is(':visible')) {
+                $modal.hide();
+            }
+        });
+
     });
 
 })(jQuery);

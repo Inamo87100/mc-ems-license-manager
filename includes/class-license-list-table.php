@@ -48,6 +48,7 @@ class MC_EMS_License_List_Table extends WP_List_Table {
 		return array(
 			'cb'          => '<input type="checkbox" />',
 			'user'        => __( 'User', 'mc-ems-license-manager' ),
+			'product'     => __( 'Product', 'mc-ems-license-manager' ),
 			'license_key' => __( 'License Key', 'mc-ems-license-manager' ),
 			'site_url'    => __( 'Site URL', 'mc-ems-license-manager' ),
 			'status'      => __( 'Status', 'mc-ems-license-manager' ),
@@ -97,6 +98,24 @@ class MC_EMS_License_List_Table extends WP_List_Table {
 			return esc_html( $user->display_name ) . ' <small>(' . esc_html( $user->user_email ) . ')</small>';
 		}
 		return esc_html__( 'Unknown user', 'mc-ems-license-manager' );
+	}
+
+	/**
+	 * Product column.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_product( $item ) {
+		if ( empty( $item['product_id'] ) ) {
+			return '&mdash;';
+		}
+		$product_id   = (int) $item['product_id'];
+		$product_name = get_the_title( $product_id );
+		if ( $product_name ) {
+			return esc_html( $product_name ) . ' <small>(#' . $product_id . ')</small>';
+		}
+		return '#' . $product_id;
 	}
 
 	/**
