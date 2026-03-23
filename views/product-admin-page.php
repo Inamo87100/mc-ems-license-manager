@@ -1,8 +1,14 @@
+<?php
+/**
+ * Product Admin Page for MC EMS License Manager.
+ * @package MC_EMS_License_Manager
+ */
+?>
 <div class="wrap mc-ems-admin">
     <h1><?php esc_html_e( 'Associazioni prodotti e chiavi licenza', 'mc-ems-license-manager' ); ?></h1>
-    
+
     <?php
-    // Notifiche admin, se presenti.
+    // Admin notices.
     if ( function_exists( 'settings_errors' ) ) {
         settings_errors();
     }
@@ -50,7 +56,6 @@
 
     <hr />
 
-    <!-- Product list -->
     <h2><?php esc_html_e( 'Prodotti Associati', 'mc-ems-license-manager' ); ?></h2>
     <form id="mc-ems-products-form" method="post">
         <?php $list_table->display(); ?>
