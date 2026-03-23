@@ -96,35 +96,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php $list_table->display(); ?>
 	</form>
 
-	<!-- Inline edit form (hidden by default) -->
-	<div id="mc-ems-edit-modal" class="mc-ems-edit-modal" style="display:none;">
-		<div class="mc-ems-edit-modal__backdrop"></div>
-		<div class="mc-ems-edit-modal__box">
-			<h3><?php esc_html_e( 'Modifica Durata Licenza', 'mc-ems-license-manager' ); ?></h3>
-
-			<form method="post" action="" id="mc-ems-edit-product-form">
-				<?php wp_nonce_field( 'mc_ems_edit_product', 'mc_ems_edit_product_nonce' ); ?>
-				<input type="hidden" name="edit_product_id" id="edit_product_id" value="" />
-
-				<p>
-					<label for="edit_duration_days"><?php esc_html_e( 'Durata (giorni):', 'mc-ems-license-manager' ); ?></label>
-					<input
-						type="number"
-						name="edit_duration_days"
-						id="edit_duration_days"
-						min="1"
-						value="365"
-						class="small-text"
-						required
-					/>
-				</p>
-
-				<p class="mc-ems-edit-modal__actions">
-					<?php submit_button( __( 'Salva', 'mc-ems-license-manager' ), 'primary', 'submit_edit_product', false ); ?>
-					<button type="button" class="button mc-ems-edit-modal__cancel"><?php esc_html_e( 'Annulla', 'mc-ems-license-manager' ); ?></button>
-				</p>
-			</form>
-		</div>
-	</div>
-
 </div>
