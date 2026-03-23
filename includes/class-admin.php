@@ -202,7 +202,7 @@ class MC_EMS_Admin {
 	}
 
 	/**
-	 * Process product CRUD actions.
+	 * Process product CRUD actions (add, delete only).
 	 *
 	 * @return void
 	 */
@@ -238,37 +238,6 @@ class MC_EMS_Admin {
 				$this->add_notice( __( 'Product added successfully.', 'mc-ems-license-manager' ), 'success' );
 			} else {
 				$this->add_notice( __( 'Failed to add product.', 'mc-ems-license-manager' ), 'error' );
-			}
-
-			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
-			exit;
-		}
-
-		// Edit product association.
-		if ( isset( $_POST['mc_ems_edit_product_nonce'] ) ) {
-			if ( ! wp_verify_nonce( sanitize_key( $_POST['mc_ems_edit_product_nonce'] ), 'mc_ems_edit_product' ) ) {
-				wp_die( esc_html__( 'Security check failed.', 'mc-ems-license-manager' ) );
-			}
-
-			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html__( 'You do not have permission to do this.', 'mc-ems-license-manager' ) );
-			}
-
-			$product_id    = isset( $_POST['edit_product_id'] ) ? absint( $_POST['edit_product_id'] ) : 0;
-			$duration_days = isset( $_POST['edit_duration_days'] ) ? absint( $_POST['edit_duration_days'] ) : 0;
-
-			if ( ! $product_id || ! $duration_days ) {
-				$this->add_notice( __( 'Invalid product or duration.', 'mc-ems-license-manager' ), 'error' );
-				wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
-				exit;
-			}
-
-			$result = $this->product_manager->update_product( $product_id, $duration_days );
-
-			if ( $result ) {
-				$this->add_notice( __( 'Product updated successfully.', 'mc-ems-license-manager' ), 'success' );
-			} else {
-				$this->add_notice( __( 'Failed to update product.', 'mc-ems-license-manager' ), 'error' );
 			}
 
 			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
