@@ -7,21 +7,23 @@
 
     $(document).ready(function() {
 
+        var admin = (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin : {};
+        var i18n  = admin.i18n || {};
+
         // AJAX revoke via data-license attribute (legacy / programmatic use).
         $('.revoke-license').on('click', function(e) {
             e.preventDefault();
 
             var licenseKey = $(this).data('license');
-            var i18n = (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin.i18n : {};
 
             if (confirm(i18n.confirm_revoke || 'Are you sure you want to revoke this license?')) {
                 $.ajax({
-                    url: (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin.ajaxurl : ajaxurl,
+                    url: admin.ajaxurl || ajaxurl,
                     type: 'POST',
                     data: {
                         action: 'mc_ems_revoke_license',
                         license_key: licenseKey,
-                        nonce: (typeof mcEmsAdmin !== 'undefined') ? mcEmsAdmin.nonce : ''
+                        nonce: admin.nonce || ''
                     },
                     success: function(response) {
                         if (response.success) {
@@ -75,6 +77,76 @@
             if (e.key === 'Escape' && $modal.is(':visible')) {
                 $modal.hide();
             }
+        });
+
+        // Save product via AJAX when modal form is submitted.
+        $('#mc-ems-edit-product-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var productId    = $('#edit_product_id').val();
+            var durationDays = $('#edit_duration_days').val();
+            var $submitBtn   = $(this).find('[type="submit"]');
+
+            $submitBtn.prop('disabled', true);
+
+            $.ajax({
+                url: admin.ajaxurl || ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'mc_ems_edit_product',
+                    product_id: productId,
+                    duration_days: durationDays,
+                    nonce: admin.product_nonce || ''
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $modal.hide();
+                        location.reload();
+                    } else {
+                        alert((response.data && response.data.message) ? response.data.message : (i18n.error || 'An error occurred. Please try again.'));
+                    }
+                },
+                error: function() {
+                    alert(i18n.error || 'An error occurred. Please try again.');
+                },
+                complete: function() {
+                    $submitBtn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Delete product via AJAX.
+        $(document).on('click', '.mc-ems-delete-product', function(e) {
+            e.preventDefault();
+
+            if (!confirm(i18n.confirm_delete_product || 'Are you sure you want to remove this product association?')) {
+                return;
+            }
+
+            var productId = $(this).data('product-id');
+            var $row      = $(this).closest('tr');
+
+            $.ajax({
+                url: admin.ajaxurl || ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'mc_ems_delete_product',
+                    product_id: productId,
+                    nonce: admin.product_nonce || ''
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        alert((response.data && response.data.message) ? response.data.message : (i18n.error || 'An error occurred. Please try again.'));
+                    }
+                },
+                error: function() {
+                    alert(i18n.error || 'An error occurred. Please try again.');
+                }
+            });
         });
 
     });

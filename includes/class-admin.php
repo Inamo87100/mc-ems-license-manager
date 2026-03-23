@@ -36,6 +36,8 @@ class MC_EMS_Admin {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_mc_ems_revoke_license', array( $this, 'ajax_revoke_license' ) );
+		add_action( 'wp_ajax_mc_ems_edit_product', array( $this, 'ajax_edit_product' ) );
+		add_action( 'wp_ajax_mc_ems_delete_product', array( $this, 'ajax_delete_product' ) );
 	}
 
 	/**
@@ -108,16 +110,19 @@ class MC_EMS_Admin {
 			'mc-ems-admin',
 			'mcEmsAdmin',
 			array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'mc_ems_license_action' ),
-				'i18n'    => array(
-					'confirm_revoke'        => __( 'Are you sure you want to revoke this license?', 'mc-ems-license-manager' ),
-					'revoked'               => __( 'License revoked successfully.', 'mc-ems-license-manager' ),
-					'error'                 => __( 'An error occurred. Please try again.', 'mc-ems-license-manager' ),
-					'save'                  => __( 'Save', 'mc-ems-license-manager' ),
-					'cancel'                => __( 'Cancel', 'mc-ems-license-manager' ),
-					'duration_label'        => __( 'Duration (days):', 'mc-ems-license-manager' ),
+				'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+				'nonce'         => wp_create_nonce( 'mc_ems_license_action' ),
+				'product_nonce' => wp_create_nonce( 'mc_ems_product_action' ),
+				'i18n'          => array(
+					'confirm_revoke'         => __( 'Are you sure you want to revoke this license?', 'mc-ems-license-manager' ),
+					'revoked'                => __( 'License revoked successfully.', 'mc-ems-license-manager' ),
+					'error'                  => __( 'An error occurred. Please try again.', 'mc-ems-license-manager' ),
+					'save'                   => __( 'Save', 'mc-ems-license-manager' ),
+					'cancel'                 => __( 'Cancel', 'mc-ems-license-manager' ),
+					'duration_label'         => __( 'Duration (days):', 'mc-ems-license-manager' ),
 					'confirm_delete_product' => __( 'Are you sure you want to remove this product association?', 'mc-ems-license-manager' ),
+					'product_updated'        => __( 'Product updated successfully.', 'mc-ems-license-manager' ),
+					'product_deleted'        => __( 'Product association removed.', 'mc-ems-license-manager' ),
 				),
 			)
 		);
@@ -389,6 +394,61 @@ class MC_EMS_Admin {
 
 		$this->license_manager->update_status( (int) $license->id, 'inactive' );
 		wp_send_json_success( array( 'message' => __( 'License revoked.', 'mc-ems-license-manager' ) ) );
+	}
+
+	/**
+	 * AJAX handler: edit product license duration.
+	 *
+	 * @return void
+	 */
+	public function ajax_edit_product() {
+		check_ajax_referer( 'mc_ems_product_action', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$product_id    = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$duration_days = isset( $_POST['duration_days'] ) ? absint( $_POST['duration_days'] ) : 0;
+
+		if ( ! $product_id || $duration_days < 1 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid product or duration. Duration must be at least 1 day.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$result = $this->product_manager->update_product( $product_id, $duration_days );
+
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Product updated successfully.', 'mc-ems-license-manager' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to update product.', 'mc-ems-license-manager' ) ) );
+		}
+	}
+
+	/**
+	 * AJAX handler: delete product association.
+	 *
+	 * @return void
+	 */
+	public function ajax_delete_product() {
+		check_ajax_referer( 'mc_ems_product_action', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+
+		if ( ! $product_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid product ID.', 'mc-ems-license-manager' ) ) );
+		}
+
+		$result = $this->product_manager->delete_product( $product_id );
+
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Product association removed.', 'mc-ems-license-manager' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to remove product association.', 'mc-ems-license-manager' ) ) );
+		}
 	}
 
 	/**
