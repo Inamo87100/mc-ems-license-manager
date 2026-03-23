@@ -1,5 +1,12 @@
 public function column_actions( $item ) {
-    // Remove the Edit button and keep only the Delete button
-    $delete_button = '<a href="?action=delete&id=' . esc_attr($item['ID']) . '" class="button button-secondary">Delete</a>'; 
-    return $delete_button; 
+    $delete_nonce = wp_create_nonce( 'delete_product' );
+    $delete_link = sprintf( "<a href='?page=%s&action=delete&product_id=%d&_wpnonce=%s' title='%s'>%s</a>",
+        esc_attr( 'your_page_slug' ),
+        $item['product_id'],
+        $delete_nonce,
+        esc_attr( 'Delete this item' ),
+        __('Delete', 'your-text-domain')
+    );
+
+    return $delete_link;
 }
