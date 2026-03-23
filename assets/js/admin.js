@@ -64,18 +64,18 @@
             $('#edit_product_id').val(productId);
             $('#edit_duration_days').val(duration);
 
-            $modal.show();
+            $modal.css('display', 'flex');
         });
 
         // Close modal on backdrop click or Cancel button.
         $modal.on('click', '.mc-ems-edit-modal__backdrop, .mc-ems-edit-modal__cancel', function() {
-            $modal.hide();
+            $modal.css('display', 'none');
         });
 
         // Close modal on Escape key.
         $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $modal.is(':visible')) {
-                $modal.hide();
+            if (e.key === 'Escape' && $modal.css('display') !== 'none') {
+                $modal.css('display', 'none');
             }
         });
 
@@ -100,7 +100,7 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $modal.hide();
+                        $modal.css('display', 'none');
                         location.reload();
                     } else {
                         alert((response.data && response.data.message) ? response.data.message : (i18n.error || 'An error occurred. Please try again.'));
