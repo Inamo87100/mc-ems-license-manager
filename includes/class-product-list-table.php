@@ -101,9 +101,15 @@ class MC_EMS_Product_List_Table extends WP_List_Table {
 			esc_html__( 'Edit', 'mc-ems-license-manager' )
 		);
 
+		$delete_url = wp_nonce_url(
+			admin_url( 'admin.php?page=mc-ems-products&action=delete_product&product_id=' . $product_id ),
+			'mc_ems_product_action'
+		);
+
 		$buttons .= sprintf(
-			'<button type="button" class="button button-small button-link-delete mc-ems-delete-product" '
-			. 'data-product-id="%d">%s</button>',
+			'<a href="%s" class="button button-small button-link-delete mc-ems-delete-product" '
+			. 'data-product-id="%d">%s</a>',
+			esc_url( $delete_url ),
 			$product_id,
 			esc_html__( 'Delete', 'mc-ems-license-manager' )
 		);

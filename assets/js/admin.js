@@ -123,8 +123,9 @@
                 return;
             }
 
-            var productId = $(this).data('product-id');
-            var $row      = $(this).closest('tr');
+            var productId  = $(this).data('product-id');
+            var $row       = $(this).closest('tr');
+            var deleteUrl  = $(this).attr('href');
 
             $.ajax({
                 url: admin.ajaxurl || ajaxurl,
@@ -141,10 +142,17 @@
                         });
                     } else {
                         alert((response.data && response.data.message) ? response.data.message : (i18n.error || 'An error occurred. Please try again.'));
+                        if (deleteUrl) {
+                            window.location.href = deleteUrl;
+                        }
                     }
                 },
                 error: function() {
-                    alert(i18n.error || 'An error occurred. Please try again.');
+                    if (deleteUrl) {
+                        window.location.href = deleteUrl;
+                    } else {
+                        alert(i18n.error || 'An error occurred. Please try again.');
+                    }
                 }
             });
         });
