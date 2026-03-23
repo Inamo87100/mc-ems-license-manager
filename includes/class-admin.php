@@ -2,7 +2,7 @@
 /**
  * Admin class for MC EMS License Manager
  *
- * Registers the admin menu page, handles form submissions and AJAX actions.
+ * Registers the admin menu pages, handles form submissions and AJAX actions.
  *
  * @package MC_EMS_License_Manager
  */
@@ -19,12 +19,19 @@ class MC_EMS_Admin {
 	private $license_manager;
 
 	/**
+	 * @var MC_EMS_Product_Manager
+	 */
+	private $product_manager;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param MC_EMS_License_Manager $license_manager License manager instance.
+	 * @param MC_EMS_Product_Manager $product_manager Product manager instance.
 	 */
-	public function __construct( MC_EMS_License_Manager $license_manager ) {
+	public function __construct( MC_EMS_License_Manager $license_manager, MC_EMS_Product_Manager $product_manager ) {
 		$this->license_manager = $license_manager;
+		$this->product_manager = $product_manager;
 
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
@@ -32,19 +39,37 @@ class MC_EMS_Admin {
 	}
 
 	/**
-	 * Add admin menu page.
+	 * Add admin menu pages and submenus.
 	 *
 	 * @return void
 	 */
 	public function add_admin_menu() {
 		add_menu_page(
-			__( 'MC EMS Licenses', 'mc-ems-license-manager' ),
-			__( 'MC EMS Licenses', 'mc-ems-license-manager' ),
+			__( 'Licenze', 'mc-ems-license-manager' ),
+			__( 'Licenze', 'mc-ems-license-manager' ),
 			'manage_options',
 			'mc-ems-licenses',
 			array( $this, 'render_page' ),
 			'dashicons-admin-network',
 			56
+		);
+
+		add_submenu_page(
+			'mc-ems-licenses',
+			__( 'Gestisci Licenze', 'mc-ems-license-manager' ),
+			__( 'Gestisci Licenze', 'mc-ems-license-manager' ),
+			'manage_options',
+			'mc-ems-licenses',
+			array( $this, 'render_page' )
+		);
+
+		add_submenu_page(
+			'mc-ems-licenses',
+			__( 'Prodotti', 'mc-ems-license-manager' ),
+			__( 'Prodotti', 'mc-ems-license-manager' ),
+			'manage_options',
+			'mc-ems-products',
+			array( $this, 'render_products_page' )
 		);
 	}
 
@@ -55,7 +80,12 @@ class MC_EMS_Admin {
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
-		if ( 'toplevel_page_mc-ems-licenses' !== $hook ) {
+		$our_hooks = array(
+			'toplevel_page_mc-ems-licenses',
+			'licenze_page_mc-ems-products',
+		);
+
+		if ( ! in_array( $hook, $our_hooks, true ) ) {
 			return;
 		}
 
@@ -81,48 +111,24 @@ class MC_EMS_Admin {
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'mc_ems_license_action' ),
 				'i18n'    => array(
-					'confirm_revoke' => __( 'Are you sure you want to revoke this license?', 'mc-ems-license-manager' ),
-					'revoked'        => __( 'License revoked successfully.', 'mc-ems-license-manager' ),
-					'error'          => __( 'An error occurred. Please try again.', 'mc-ems-license-manager' ),
+					'confirm_revoke'        => __( 'Are you sure you want to revoke this license?', 'mc-ems-license-manager' ),
+					'revoked'               => __( 'License revoked successfully.', 'mc-ems-license-manager' ),
+					'error'                 => __( 'An error occurred. Please try again.', 'mc-ems-license-manager' ),
+					'save'                  => __( 'Save', 'mc-ems-license-manager' ),
+					'cancel'                => __( 'Cancel', 'mc-ems-license-manager' ),
+					'duration_label'        => __( 'Duration (days):', 'mc-ems-license-manager' ),
+					'confirm_delete_product' => __( 'Are you sure you want to remove this product association?', 'mc-ems-license-manager' ),
 				),
 			)
 		);
 	}
 
 	/**
-	 * Process actions before rendering the page.
+	 * Process license row/bulk actions.
 	 *
 	 * @return void
 	 */
 	private function process_action() {
-		// Process create license form.
-		if ( isset( $_POST['mc_ems_create_license_nonce'] ) ) {
-			if ( ! wp_verify_nonce( sanitize_key( $_POST['mc_ems_create_license_nonce'] ), 'mc_ems_create_license' ) ) {
-				wp_die( esc_html__( 'Security check failed.', 'mc-ems-license-manager' ) );
-			}
-
-			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html__( 'You do not have permission to do this.', 'mc-ems-license-manager' ) );
-			}
-
-			$user_id  = isset( $_POST['license_user_id'] ) ? absint( $_POST['license_user_id'] ) : 0;
-			$duration = isset( $_POST['license_duration'] ) && '' !== $_POST['license_duration']
-				? absint( $_POST['license_duration'] )
-				: null;
-			$site_url = isset( $_POST['license_site_url'] ) ? sanitize_text_field( wp_unslash( $_POST['license_site_url'] ) ) : '';
-
-			$result = $this->license_manager->create_license( $user_id, $duration, $site_url ?: null );
-
-			if ( $result ) {
-				$this->add_notice( __( 'License created successfully.', 'mc-ems-license-manager' ), 'success' );
-			} else {
-				$this->add_notice( __( 'Failed to create license. Please check the user ID.', 'mc-ems-license-manager' ), 'error' );
-			}
-
-			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-licenses' ) );
-			exit;
-		}
-
 		// Process single row actions (activate / deactivate / delete).
 		if ( ! empty( $_GET['action'] ) && ! empty( $_GET['license_id'] ) ) {
 			if ( empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'mc_ems_license_action' ) ) {
@@ -196,7 +202,105 @@ class MC_EMS_Admin {
 	}
 
 	/**
-	 * Render the admin page.
+	 * Process product CRUD actions.
+	 *
+	 * @return void
+	 */
+	private function process_product_action() {
+		// Add product association.
+		if ( isset( $_POST['mc_ems_add_product_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_key( $_POST['mc_ems_add_product_nonce'] ), 'mc_ems_add_product' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'mc-ems-license-manager' ) );
+			}
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'You do not have permission to do this.', 'mc-ems-license-manager' ) );
+			}
+
+			$product_id    = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+			$duration_days = isset( $_POST['duration_days'] ) ? absint( $_POST['duration_days'] ) : 365;
+
+			if ( ! $product_id ) {
+				$this->add_notice( __( 'Please select a valid product.', 'mc-ems-license-manager' ), 'error' );
+				wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+				exit;
+			}
+
+			if ( $this->product_manager->is_product_licensed( $product_id ) ) {
+				$this->add_notice( __( 'This product is already associated with a license.', 'mc-ems-license-manager' ), 'error' );
+				wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+				exit;
+			}
+
+			$result = $this->product_manager->add_product( $product_id, $duration_days ?: 365 );
+
+			if ( $result ) {
+				$this->add_notice( __( 'Product added successfully.', 'mc-ems-license-manager' ), 'success' );
+			} else {
+				$this->add_notice( __( 'Failed to add product.', 'mc-ems-license-manager' ), 'error' );
+			}
+
+			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+			exit;
+		}
+
+		// Edit product association.
+		if ( isset( $_POST['mc_ems_edit_product_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_key( $_POST['mc_ems_edit_product_nonce'] ), 'mc_ems_edit_product' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'mc-ems-license-manager' ) );
+			}
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'You do not have permission to do this.', 'mc-ems-license-manager' ) );
+			}
+
+			$product_id    = isset( $_POST['edit_product_id'] ) ? absint( $_POST['edit_product_id'] ) : 0;
+			$duration_days = isset( $_POST['edit_duration_days'] ) ? absint( $_POST['edit_duration_days'] ) : 0;
+
+			if ( ! $product_id || ! $duration_days ) {
+				$this->add_notice( __( 'Invalid product or duration.', 'mc-ems-license-manager' ), 'error' );
+				wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+				exit;
+			}
+
+			$result = $this->product_manager->update_product( $product_id, $duration_days );
+
+			if ( $result ) {
+				$this->add_notice( __( 'Product updated successfully.', 'mc-ems-license-manager' ), 'success' );
+			} else {
+				$this->add_notice( __( 'Failed to update product.', 'mc-ems-license-manager' ), 'error' );
+			}
+
+			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+			exit;
+		}
+
+		// Delete product association.
+		if ( ! empty( $_GET['action'] ) && 'delete_product' === sanitize_key( $_GET['action'] ) && ! empty( $_GET['product_id'] ) ) {
+			if ( empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'mc_ems_product_action' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'mc-ems-license-manager' ) );
+			}
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'You do not have permission to do this.', 'mc-ems-license-manager' ) );
+			}
+
+			$product_id = absint( $_GET['product_id'] );
+			$result     = $this->product_manager->delete_product( $product_id );
+
+			if ( $result ) {
+				$this->add_notice( __( 'Product association removed.', 'mc-ems-license-manager' ), 'success' );
+			} else {
+				$this->add_notice( __( 'Failed to remove product association.', 'mc-ems-license-manager' ), 'error' );
+			}
+
+			wp_safe_redirect( admin_url( 'admin.php?page=mc-ems-products' ) );
+			exit;
+		}
+	}
+
+	/**
+	 * Render the licenses admin page (read-only list).
 	 *
 	 * @return void
 	 */
@@ -210,14 +314,47 @@ class MC_EMS_Admin {
 		$list_table = new MC_EMS_License_List_Table( $this->license_manager );
 		$list_table->prepare_items();
 
-		$users = get_users( array( 'fields' => array( 'ID', 'display_name', 'user_email' ) ) );
-
 		$notices = get_transient( 'mc_ems_admin_notices_' . get_current_user_id() );
 		if ( $notices ) {
 			delete_transient( 'mc_ems_admin_notices_' . get_current_user_id() );
 		}
 
 		include MC_EMS_LICENSE_MANAGER_DIR . 'views/license-admin-page.php';
+	}
+
+	/**
+	 * Render the products admin page.
+	 *
+	 * @return void
+	 */
+	public function render_products_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$this->process_product_action();
+
+		$list_table = new MC_EMS_Product_List_Table( $this->product_manager );
+		$list_table->prepare_items();
+
+		// Get WooCommerce products for the add-product select.
+		$wc_products = array();
+		if ( function_exists( 'wc_get_products' ) ) {
+			$wc_products = wc_get_products(
+				array(
+					'status' => 'publish',
+					'limit'  => -1,
+					'return' => 'objects',
+				)
+			);
+		}
+
+		$notices = get_transient( 'mc_ems_admin_notices_' . get_current_user_id() );
+		if ( $notices ) {
+			delete_transient( 'mc_ems_admin_notices_' . get_current_user_id() );
+		}
+
+		include MC_EMS_LICENSE_MANAGER_DIR . 'views/product-admin-page.php';
 	}
 
 	/**
