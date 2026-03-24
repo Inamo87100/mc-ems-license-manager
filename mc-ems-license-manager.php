@@ -4,7 +4,7 @@
  * Plugin URI: https://mambacoding.com
  * Description: A license manager for MC EMS.
  * Version: 1.0.0
- * Author: Inamo87100
+ * Author: Mamba Coding
  * Author URI: https://mambacoding.com
  * Text Domain: mc-ems-license-manager
  */
@@ -27,6 +27,9 @@ require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-license-list-table.php
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-product-list-table.php';
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-admin.php';
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-woocommerce-integration.php';
+
+// >>> Include il REST endpoint della licenza
+require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-rest-endpoints.php';
 
 // Activation hook – create DB tables.
 function mc_ems_license_manager_activate() {
