@@ -3,7 +3,7 @@
  * Plugin Name: MC EMS License Manager
  * Plugin URI: https://mambacoding.com
  * Description: A license manager for MC EMS.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Mamba Coding
  * Author URI: https://mambacoding.com
  * Text Domain: mc-ems-license-manager
@@ -13,7 +13,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Constants definition
-define( 'MC_EMS_LICENSE_MANAGER_VERSION', '1.0.0' );
+define( 'MC_EMS_LICENSE_MANAGER_VERSION', '1.1.0' );
 define( 'MC_EMS_LICENSE_MANAGER_FILE', __FILE__ );
 define( 'MC_EMS_LICENSE_MANAGER_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -47,6 +47,10 @@ register_deactivation_hook( MC_EMS_LICENSE_MANAGER_FILE, 'mc_ems_license_manager
 // Initialize the plugin.
 add_action( 'plugins_loaded', 'mc_ems_license_manager_init' );
 function mc_ems_license_manager_init() {
+	// Ensure database schema is up to date.
+	MC_EMS_Database::create_table();
+	MC_EMS_Database::create_product_licenses_table();
+
 	// Load text domain for i18n.
 	load_plugin_textdomain(
 		'mc-ems-license-manager',
