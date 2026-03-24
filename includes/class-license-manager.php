@@ -68,16 +68,17 @@ class MC_EMS_License_Manager {
 		}
 
 		$data = array(
-			'user_id'     => $user_id,
-			'license_key' => $license_key,
-			'site_url'    => $site_url ? esc_url_raw( $site_url ) : null,
-			'status'      => 'active',
-			'created_at'  => $now,
-			'expires_at'  => $expires_at,
-			'updated_at'  => $now,
+			'user_id'      => $user_id,
+			'license_key'  => $license_key,
+			'site_url'     => $site_url ? esc_url_raw( $site_url ) : null,
+			'status'       => 'active',
+			'created_at'   => $now,
+			'activated_at' => $now,
+			'expires_at'   => $expires_at,
+			'updated_at'   => $now,
 		);
 
-		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s' );
+		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 
 		// Only include product_id when it is explicitly set to avoid inserting 0 instead of NULL.
 		if ( ! is_null( $product_id ) ) {
@@ -111,6 +112,24 @@ class MC_EMS_License_Manager {
 	}
 
 	/**
+	 * Get a single license by key.
+	 *
+	 * @param string $license_key License key.
+	 * @return array|null
+	 */
+	public function get_license_by_key( $license_key ) {
+		global $wpdb;
+
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE license_key = %s LIMIT 1',
+				sanitize_text_field( $license_key )
+			),
+			ARRAY_A
+		);
+	}
+
+	/**
 	 * Validate a license key.
 	 *
 	 * @param string $license_key License key to validate.
@@ -119,51 +138,87 @@ class MC_EMS_License_Manager {
 	 * @return array|false License row array on success, false on failure.
 	 */
 	public function validate_license( $license_key, $user_id = 0, $site_url = '' ) {
-		global $wpdb;
+		$evaluation = $this->evaluate_license( $license_key, $user_id, $site_url, true );
 
-		$license = $wpdb->get_row(
-			$wpdb->prepare(
-				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE license_key = %s',
-				sanitize_text_field( $license_key )
-			),
-			ARRAY_A
-		);
+		if ( ! $evaluation['is_valid'] ) {
+			return false;
+		}
+
+		return $evaluation['license'];
+	}
+
+	/**
+	 * Evaluate a license and return full diagnostic information.
+	 *
+	 * @param string $license_key       License key to evaluate.
+	 * @param int    $user_id           Expected WordPress user ID.
+	 * @param string $site_url          Site URL requesting validation.
+	 * @param bool   $auto_mark_expired Whether to auto-mark expired licenses.
+	 * @return array
+	 */
+	public function evaluate_license( $license_key, $user_id = 0, $site_url = '', $auto_mark_expired = true ) {
+		$license = $this->get_license_by_key( $license_key );
 
 		if ( ! $license ) {
-			return false;
+			return array(
+				'is_valid' => false,
+				'reason'   => 'not_found',
+				'license'  => null,
+			);
 		}
 
-		// Check user.
 		if ( $user_id && (int) $license['user_id'] !== (int) $user_id ) {
-			return false;
+			return array(
+				'is_valid' => false,
+				'reason'   => 'user_mismatch',
+				'license'  => $license,
+			);
 		}
 
-		// Check site URL if provided and stored.
-		if ( $site_url && $license['site_url'] && trailingslashit( esc_url_raw( $site_url ) ) !== trailingslashit( $license['site_url'] ) ) {
-			return false;
+		if ( $site_url && ! empty( $license['site_url'] ) && trailingslashit( esc_url_raw( $site_url ) ) !== trailingslashit( $license['site_url'] ) ) {
+			return array(
+				'is_valid' => false,
+				'reason'   => 'site_mismatch',
+				'license'  => $license,
+			);
 		}
 
-		// Check status.
-		if ( 'active' !== $license['status'] ) {
-			return false;
-		}
-
-		// Check expiry.
 		if ( ! empty( $license['expires_at'] ) ) {
 			$now     = strtotime( current_time( 'mysql' ) );
 			$expires = strtotime( $license['expires_at'] );
-			if ( $expires < $now ) {
-				// Auto-mark as expired.
-				$this->update_status( (int) $license['id'], 'expired' );
-				return false;
+			if ( $expires && $expires < $now ) {
+				if ( 'expired' !== $license['status'] && $auto_mark_expired ) {
+					$this->update_status( (int) $license['id'], 'expired' );
+					$license['status']     = 'expired';
+					$license['updated_at'] = current_time( 'mysql' );
+				}
+
+				return array(
+					'is_valid' => false,
+					'reason'   => 'expired',
+					'license'  => $license,
+				);
 			}
 		}
 
-		return $license;
+		if ( 'active' !== $license['status'] ) {
+			return array(
+				'is_valid' => false,
+				'reason'   => 'inactive',
+				'license'  => $license,
+			);
+		}
+
+		return array(
+			'is_valid' => true,
+			'reason'   => 'valid',
+			'license'  => $license,
+		);
 	}
 
 	/**
 	 * Get a single license by ID.
+
 	 *
 	 * @param int $license_id License ID.
 	 * @return array|null
@@ -317,14 +372,23 @@ class MC_EMS_License_Manager {
 			return false;
 		}
 
+		$data = array(
+			'status'     => $status,
+			'updated_at' => current_time( 'mysql' ),
+		);
+
+		$formats = array( '%s', '%s' );
+
+		if ( 'active' === $status ) {
+			$data['activated_at'] = current_time( 'mysql' );
+			$formats[]           = '%s';
+		}
+
 		$result = $wpdb->update(
 			MC_EMS_Database::table_name(),
-			array(
-				'status'     => $status,
-				'updated_at' => current_time( 'mysql' ),
-			),
+			$data,
 			array( 'id' => absint( $license_id ) ),
-			array( '%s', '%s' ),
+			$formats,
 			array( '%d' )
 		);
 
