@@ -49,7 +49,7 @@ class MC_EMS_Database {
 	}
 
 	/**
-	 * Create the licenses table on plugin activation.
+	 * Create or update the licenses table.
 	 *
 	 * @return void
 	 */
@@ -60,15 +60,16 @@ class MC_EMS_Database {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE {$table} (
-			id          INT          NOT NULL AUTO_INCREMENT,
-			user_id     INT          NOT NULL,
-			product_id  INT          DEFAULT NULL,
-			license_key VARCHAR(50)  NOT NULL,
-			site_url    VARCHAR(255) DEFAULT NULL,
-			status      VARCHAR(20)  NOT NULL DEFAULT 'active',
-			created_at  DATETIME     NOT NULL,
-			expires_at  DATETIME     DEFAULT NULL,
-			updated_at  DATETIME     NOT NULL,
+			id           INT          NOT NULL AUTO_INCREMENT,
+			user_id      INT          NOT NULL,
+			product_id   INT          DEFAULT NULL,
+			license_key  VARCHAR(50)  NOT NULL,
+			site_url     VARCHAR(255) DEFAULT NULL,
+			status       VARCHAR(20)  NOT NULL DEFAULT 'active',
+			created_at   DATETIME     NOT NULL,
+			activated_at DATETIME     DEFAULT NULL,
+			expires_at   DATETIME     DEFAULT NULL,
+			updated_at   DATETIME     NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY   license_key (license_key),
 			KEY          user_id     (user_id),
@@ -77,6 +78,8 @@ class MC_EMS_Database {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+
+		self::backfill_activated_at();
 	}
 
 	/**
@@ -102,6 +105,21 @@ class MC_EMS_Database {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+	}
+
+	/**
+	 * Ensure activated_at is populated for existing rows.
+	 *
+	 * @return void
+	 */
+	public static function backfill_activated_at() {
+		global $wpdb;
+
+		$table = self::table_name();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "UPDATE {$table} SET activated_at = created_at WHERE activated_at IS NULL AND status = 'active'" );
+		// phpcs:enable
 	}
 
 	/**
