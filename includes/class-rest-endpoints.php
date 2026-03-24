@@ -1,3 +1,6 @@
+<?php
+// includes/class-rest-endpoints.php
+
 add_action('rest_api_init', function () {
     register_rest_route('mcems/v1', '/license/verify', [
         'methods'  => 'POST',
@@ -70,6 +73,5 @@ function mcems_rest_check_license_official(\WP_REST_Request $request) {
         'created_at'    => $license['created_at'],
         'expires_at'    => $license['expires_at'],
         'updated_at'    => $license['updated_at'],
-        // puoi aggiungere altro se vuoi
     ]);
 }
