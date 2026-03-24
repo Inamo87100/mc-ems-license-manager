@@ -209,11 +209,47 @@ class MC_EMS_License_Manager {
 			);
 		}
 
+		if ( $site_url && empty( $license['site_url'] ) && ! empty( $license['id'] ) ) {
+			$normalized_site = trailingslashit( esc_url_raw( $site_url ) );
+			$this->update_site_url( (int) $license['id'], $normalized_site );
+			$license['site_url']   = $normalized_site;
+			$license['updated_at'] = current_time( 'mysql' );
+		}
+
 		return array(
 			'is_valid' => true,
 			'reason'   => 'valid',
 			'license'  => $license,
 		);
+	}
+
+	/**
+	 * Update the bound site URL for a license.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $site_url   Site URL.
+	 * @return bool
+	 */
+	public function update_site_url( $license_id, $site_url ) {
+		global $wpdb;
+
+		$site_url = trailingslashit( esc_url_raw( $site_url ) );
+		if ( empty( $site_url ) ) {
+			return false;
+		}
+
+		$result = $wpdb->update(
+			MC_EMS_Database::table_name(),
+			array(
+				'site_url'   => $site_url,
+				'updated_at' => current_time( 'mysql' ),
+			),
+			array( 'id' => absint( $license_id ) ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $result;
 	}
 
 	/**
