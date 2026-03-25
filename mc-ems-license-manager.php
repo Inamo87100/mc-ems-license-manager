@@ -31,16 +31,23 @@ require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-woocommerce-integratio
 // >>> Include il REST endpoint della licenza
 require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/class-rest-endpoints.php';
 
+// >>> Include the My Account "My Licenses" endpoint
+require_once MC_EMS_LICENSE_MANAGER_DIR . 'includes/ems-license-myaccount.php';
+
 // Activation hook – create DB tables.
 function mc_ems_license_manager_activate() {
 	MC_EMS_Database::create_table();
 	MC_EMS_Database::create_product_licenses_table();
+    // Flush rewrite rules for the My Account endpoint
+    flush_rewrite_rules();
 }
 register_activation_hook( MC_EMS_LICENSE_MANAGER_FILE, 'mc_ems_license_manager_activate' );
 
 // Deactivation hook – nothing to clean up (tables kept for data safety).
 function mc_ems_license_manager_deactivate() {
 	// Intentionally left empty; tables are preserved across deactivations.
+    // Also flush rewrite rules to clean custom endpoints if plugin is removed
+    flush_rewrite_rules();
 }
 register_deactivation_hook( MC_EMS_LICENSE_MANAGER_FILE, 'mc_ems_license_manager_deactivate' );
 
