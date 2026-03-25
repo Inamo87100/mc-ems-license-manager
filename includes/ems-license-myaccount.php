@@ -18,27 +18,64 @@ add_filter('woocommerce_account_menu_items', function ($items) {
 // 3. Add handler for endpoint content
 add_action('woocommerce_account_licenses_endpoint', function () {
     $user_id = get_current_user_id();
-
-    // Replace with your actual query to fetch licenses
     $licenses = ems_get_user_licenses($user_id);
 
     if (!$licenses) {
-        echo "<p>You have no active licenses.</p>";
+        echo "<p>You have no licenses.</p>";
     } else {
         echo '<table class="shop_table shop_table_responsive">';
-        echo '<thead><tr><th>License</th><th>Expiration Date</th></tr></thead><tbody>';
+        echo '<thead><tr>';
+        echo '<th>Product</th>';
+        echo '<th>License Key</th>';
+        echo '<th>Site URL</th>';
+        echo '<th>Status</th>';
+        echo '<th>Created At</th>';
+        echo '<th>Activated At</th>';
+        echo '<th>Expiration Date</th>';
+        echo '</tr></thead><tbody>';
         foreach ($licenses as $lic) {
-            echo "<tr><td>{$lic->code}</td><td>{$lic->expires}</td></tr>";
+            echo "<tr>
+                <td>" . esc_html($lic->product ? $lic->product . " (#{$lic->product_id})" : '-') . "</td>
+                <td><code>" . esc_html($lic->code) . "</code></td>
+                <td>" . esc_html($lic->site_url ?: '-') . "</td>
+                <td>" . esc_html(ucfirst($lic->status)) . "</td>
+                <td>" . esc_html($lic->created_at ?: '-') . "</td>
+                <td>" . esc_html($lic->activated_at ?: '-') . "</td>
+                <td>" . esc_html($lic->expires ?: '-') . "</td>
+            </tr>";
         }
         echo '</tbody></table>';
     }
 });
 
-// 4. (Implement this function to fetch actual licenses)
+// 4. Function to fetch all licenses for current user
 function ems_get_user_licenses($user_id) {
-    // Dummy example: Replace with your DB query
     global $wpdb;
-    return $wpdb->get_results($wpdb->prepare(
-        "SELECT code, expires FROM {$wpdb->prefix}ems_licenses WHERE user_id = %d", $user_id
+
+    $table = $wpdb->prefix . 'mc_ems_licenses';
+
+    // Take ALL licenses, regardless of status
+    $licenses = $wpdb->get_results($wpdb->prepare(
+        "SELECT id, license_key, product_id, site_url, status, created_at, activated_at, expires_at 
+         FROM $table WHERE user_id = %d", 
+        $user_id
     ));
+
+    // Attach product name
+    $out = [];
+    foreach ($licenses as $lic) {
+        $product_name = $lic->product_id ? get_the_title($lic->product_id) : '';
+        $out[] = (object) [
+            'id'           => $lic->id,
+            'code'         => $lic->license_key,
+            'product'      => $product_name,
+            'product_id'   => $lic->product_id,
+            'site_url'     => $lic->site_url,
+            'status'       => $lic->status,
+            'created_at'   => $lic->created_at,
+            'activated_at' => $lic->activated_at,
+            'expires'      => $lic->expires_at,
+        ];
+    }
+    return $out;
 }
