@@ -1,0 +1,12 @@
+.mc-ems-license-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 2em;
+}
+
+.mc-ems-license-table {
+  width: 100%;
+  min-width: 700px;
+  max-width: 100%;
+  border-collapse: separate;
+}
