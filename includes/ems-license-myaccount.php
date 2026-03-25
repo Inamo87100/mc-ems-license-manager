@@ -15,7 +15,7 @@ add_filter('woocommerce_account_menu_items', function ($items) {
     return $items;
 });
 
-// 3. Add handler for endpoint content
+// 3. License table rendering: NO "Activated At", dates formatted as Y-m-d
 add_action('woocommerce_account_licenses_endpoint', function () {
     $user_id = get_current_user_id();
     $licenses = ems_get_user_licenses($user_id);
@@ -30,18 +30,19 @@ add_action('woocommerce_account_licenses_endpoint', function () {
         echo '<th>Site URL</th>';
         echo '<th>Status</th>';
         echo '<th>Created At</th>';
-        echo '<th>Activated At</th>';
         echo '<th>Expiration Date</th>';
         echo '</tr></thead><tbody>';
         foreach ($licenses as $lic) {
+            $created = $lic->created_at ? date_i18n('Y-m-d', strtotime($lic->created_at)) : '-';
+            $expires = $lic->expires ? date_i18n('Y-m-d', strtotime($lic->expires)) : '-';
+
             echo "<tr>
                 <td>" . esc_html($lic->product ? $lic->product . " (#{$lic->product_id})" : '-') . "</td>
                 <td><code>" . esc_html($lic->code) . "</code></td>
                 <td>" . esc_html($lic->site_url ?: '-') . "</td>
                 <td>" . esc_html(ucfirst($lic->status)) . "</td>
-                <td>" . esc_html($lic->created_at ?: '-') . "</td>
-                <td>" . esc_html($lic->activated_at ?: '-') . "</td>
-                <td>" . esc_html($lic->expires ?: '-') . "</td>
+                <td>" . esc_html($created) . "</td>
+                <td>" . esc_html($expires) . "</td>
             </tr>";
         }
         echo '</tbody></table>';
