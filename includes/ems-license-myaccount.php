@@ -15,7 +15,7 @@ add_filter('woocommerce_account_menu_items', function ($items) {
     return $items;
 });
 
-// 3. License table rendering: NO "Activated At", dates formatted as Y-m-d
+// 3. Render license table (responsive!)
 add_action('woocommerce_account_licenses_endpoint', function () {
     $user_id = get_current_user_id();
     $licenses = ems_get_user_licenses($user_id);
@@ -23,7 +23,8 @@ add_action('woocommerce_account_licenses_endpoint', function () {
     if (!$licenses) {
         echo "<p>You have no licenses.</p>";
     } else {
-        echo '<table class="shop_table shop_table_responsive">';
+        echo '<div class="mc-ems-license-table-wrap">';
+        echo '<table class="shop_table shop_table_responsive mc-ems-license-table">';
         echo '<thead><tr>';
         echo '<th>Product</th>';
         echo '<th>License Key</th>';
@@ -45,24 +46,22 @@ add_action('woocommerce_account_licenses_endpoint', function () {
                 <td>" . esc_html($expires) . "</td>
             </tr>";
         }
-        echo '</tbody></table>';
+        echo '</tbody></table></div>';
     }
 });
 
-// 4. Function to fetch all licenses for current user
+// 4. Function to fetch all licenses for current user (all statuses)
 function ems_get_user_licenses($user_id) {
     global $wpdb;
 
     $table = $wpdb->prefix . 'mc_ems_licenses';
 
-    // Take ALL licenses, regardless of status
     $licenses = $wpdb->get_results($wpdb->prepare(
         "SELECT id, license_key, product_id, site_url, status, created_at, activated_at, expires_at 
          FROM $table WHERE user_id = %d", 
         $user_id
     ));
 
-    // Attach product name
     $out = [];
     foreach ($licenses as $lic) {
         $product_name = $lic->product_id ? get_the_title($lic->product_id) : '';
@@ -80,3 +79,15 @@ function ems_get_user_licenses($user_id) {
     }
     return $out;
 }
+
+// 5. Enqueue CSS only on the "My Licenses" endpoint of My Account page
+add_action('wp_enqueue_scripts', function () {
+    if (function_exists('is_account_page') && is_account_page() && isset($_GET['licenses'])) {
+        wp_enqueue_style(
+            'mc-ems-license-myaccount-style',
+            plugins_url('includes/ems-license-myaccount-style.css', MC_EMS_LICENSE_MANAGER_FILE),
+            [],
+            MC_EMS_LICENSE_MANAGER_VERSION
+        );
+    }
+});
