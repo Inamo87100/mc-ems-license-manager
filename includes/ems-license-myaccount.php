@@ -1,3 +1,4 @@
+<?php
 // 1. Register new endpoint /licenses in My Account
 add_action('init', function () {
     add_rewrite_endpoint('licenses', EP_ROOT | EP_PAGES);
@@ -5,10 +6,12 @@ add_action('init', function () {
 
 // 2. Add tab to My Account navigation
 add_filter('woocommerce_account_menu_items', function ($items) {
-    $logout = $items['customer-logout'];
+    $logout = $items['customer-logout'] ?? '';
     unset($items['customer-logout']);
     $items['licenses'] = __('My Licenses', 'ems-license-manager');
-    $items['customer-logout'] = $logout;
+    if ($logout) {
+        $items['customer-logout'] = $logout;
+    }
     return $items;
 });
 
@@ -31,15 +34,7 @@ add_action('woocommerce_account_licenses_endpoint', function () {
     }
 });
 
-// 4. (Optional) Flush rewrite rules after plugin activation
-register_activation_hook(__FILE__, function () {
-    flush_rewrite_rules();
-});
-register_deactivation_hook(__FILE__, function () {
-    flush_rewrite_rules();
-});
-
-// 5. (Implement this function to fetch actual licenses)
+// 4. (Implement this function to fetch actual licenses)
 function ems_get_user_licenses($user_id) {
     // Dummy example: Replace with your DB query
     global $wpdb;
