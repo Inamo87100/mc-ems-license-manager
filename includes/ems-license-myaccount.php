@@ -51,88 +51,116 @@ function ems_get_license_status_class( $status ) {
 }
 
 /**
- * Render license table in My Account.
+ * Returns a readable status label.
+ *
+ * @param string $status License status.
+ * @return string
+ */
+function ems_get_license_status_label( $status ) {
+	$status = strtolower( (string) $status );
+
+	switch ( $status ) {
+		case 'active':
+			return __( 'Active', 'ems-license-manager' );
+
+		case 'expired':
+			return __( 'Expired', 'ems-license-manager' );
+
+		case 'inactive':
+			return __( 'Inactive', 'ems-license-manager' );
+
+		default:
+			return ucfirst( $status ?: __( 'Unknown', 'ems-license-manager' ) );
+	}
+}
+
+/**
+ * Render licenses in My Account.
  */
 add_action( 'woocommerce_account_licenses_endpoint', function() {
 	$user_id  = get_current_user_id();
 	$licenses = ems_get_user_licenses( $user_id );
 
-	echo '<div class="mc-ems-my-licenses-wrap mc-ems-my-licenses-page">';
+	echo '<div class="mc-ems-licenses-page">';
 
-	echo '<div class="mc-ems-my-licenses-header">';
+	echo '<div class="mc-ems-licenses-hero">';
 	echo '<h2>' . esc_html__( 'My Licenses', 'ems-license-manager' ) . '</h2>';
-	echo '<p class="mc-ems-my-licenses-subtitle">' . esc_html__( 'Here you can view all licenses associated with your account.', 'ems-license-manager' ) . '</p>';
+	echo '<p>' . esc_html__( 'View all licenses associated with your account.', 'ems-license-manager' ) . '</p>';
 	echo '</div>';
 
 	if ( empty( $licenses ) ) {
-		echo '<div class="woocommerce-info mc-ems-no-licenses">';
-		echo esc_html__( 'You have no licenses.', 'ems-license-manager' );
+		echo '<div class="mc-ems-empty-state">';
+		echo '<div class="mc-ems-empty-state-inner">';
+		echo '<h3>' . esc_html__( 'No licenses found', 'ems-license-manager' ) . '</h3>';
+		echo '<p>' . esc_html__( 'There are currently no licenses associated with your account.', 'ems-license-manager' ) . '</p>';
+		echo '</div>';
 		echo '</div>';
 		echo '</div>';
 		return;
 	}
 
-	echo '<div class="mc-ems-license-panel">';
-	echo '<div class="mc-ems-license-table-wrap">';
-	echo '<table class="shop_table shop_table_responsive mc-ems-license-table">';
-	echo '<thead><tr>';
-	echo '<th>' . esc_html__( 'Product', 'ems-license-manager' ) . '</th>';
-	echo '<th>' . esc_html__( 'License Key', 'ems-license-manager' ) . '</th>';
-	echo '<th>' . esc_html__( 'Site URL', 'ems-license-manager' ) . '</th>';
-	echo '<th>' . esc_html__( 'Status', 'ems-license-manager' ) . '</th>';
-	echo '<th>' . esc_html__( 'Created At', 'ems-license-manager' ) . '</th>';
-	echo '<th>' . esc_html__( 'Expiration Date', 'ems-license-manager' ) . '</th>';
-	echo '</tr></thead>';
-	echo '<tbody>';
+	echo '<div class="mc-ems-license-grid">';
 
 	foreach ( $licenses as $lic ) {
 		$created = ! empty( $lic->created_at ) ? date_i18n( 'Y-m-d', strtotime( $lic->created_at ) ) : '-';
 		$expires = ! empty( $lic->expires ) ? date_i18n( 'Y-m-d', strtotime( $lic->expires ) ) : '-';
 
-		$product_label = $lic->product ? $lic->product . ' (#' . absint( $lic->product_id ) . ')' : '-';
-		$status_label  = ucfirst( (string) $lic->status );
-		$status_class  = ems_get_license_status_class( $lic->status );
+		$product_label = $lic->product ? $lic->product : __( 'Unknown product', 'ems-license-manager' );
+		if ( ! empty( $lic->product_id ) ) {
+			$product_label .= ' (#' . absint( $lic->product_id ) . ')';
+		}
 
-		echo '<tr>';
+		$status_class = ems_get_license_status_class( $lic->status );
+		$status_label = ems_get_license_status_label( $lic->status );
 
-		echo '<td class="mc-ems-col-product" data-title="' . esc_attr__( 'Product', 'ems-license-manager' ) . '">';
-		echo esc_html( $product_label );
-		echo '</td>';
+		echo '<article class="mc-ems-license-card">';
 
-		echo '<td class="mc-ems-col-key" data-title="' . esc_attr__( 'License Key', 'ems-license-manager' ) . '">';
+		echo '<div class="mc-ems-license-card-header">';
+		echo '<div class="mc-ems-license-card-product">';
+		echo '<h3>' . esc_html( $product_label ) . '</h3>';
+		echo '</div>';
+		echo '<div class="mc-ems-license-card-status">';
+		echo '<span class="mc-ems-license-status ' . esc_attr( $status_class ) . '">' . esc_html( $status_label ) . '</span>';
+		echo '</div>';
+		echo '</div>';
+
+		echo '<div class="mc-ems-license-card-body">';
+
+		echo '<div class="mc-ems-license-block mc-ems-license-block-full">';
+		echo '<span class="mc-ems-license-label">' . esc_html__( 'License Key', 'ems-license-manager' ) . '</span>';
 		echo '<code class="mc-ems-license-key">' . esc_html( $lic->code ) . '</code>';
-		echo '</td>';
+		echo '</div>';
 
-		echo '<td class="mc-ems-col-site" data-title="' . esc_attr__( 'Site URL', 'ems-license-manager' ) . '">';
+		echo '<div class="mc-ems-license-meta-grid">';
+
+		echo '<div class="mc-ems-license-block">';
+		echo '<span class="mc-ems-license-label">' . esc_html__( 'Site URL', 'ems-license-manager' ) . '</span>';
 		if ( ! empty( $lic->site_url ) ) {
-			echo '<a href="' . esc_url( $lic->site_url ) . '" target="_blank" rel="noopener noreferrer">';
+			echo '<a class="mc-ems-license-link" href="' . esc_url( $lic->site_url ) . '" target="_blank" rel="noopener noreferrer">';
 			echo esc_html( untrailingslashit( $lic->site_url ) );
 			echo '</a>';
 		} else {
-			echo '-';
+			echo '<span class="mc-ems-license-value">-</span>';
 		}
-		echo '</td>';
+		echo '</div>';
 
-		echo '<td class="mc-ems-col-status" data-title="' . esc_attr__( 'Status', 'ems-license-manager' ) . '">';
-		echo '<span class="mc-ems-license-status ' . esc_attr( $status_class ) . '">' . esc_html( $status_label ) . '</span>';
-		echo '</td>';
+		echo '<div class="mc-ems-license-block">';
+		echo '<span class="mc-ems-license-label">' . esc_html__( 'Created At', 'ems-license-manager' ) . '</span>';
+		echo '<span class="mc-ems-license-value">' . esc_html( $created ) . '</span>';
+		echo '</div>';
 
-		echo '<td class="mc-ems-col-created" data-title="' . esc_attr__( 'Created At', 'ems-license-manager' ) . '">';
-		echo esc_html( $created );
-		echo '</td>';
+		echo '<div class="mc-ems-license-block">';
+		echo '<span class="mc-ems-license-label">' . esc_html__( 'Expiration Date', 'ems-license-manager' ) . '</span>';
+		echo '<span class="mc-ems-license-value">' . esc_html( $expires ) . '</span>';
+		echo '</div>';
 
-		echo '<td class="mc-ems-col-expires" data-title="' . esc_attr__( 'Expiration Date', 'ems-license-manager' ) . '">';
-		echo esc_html( $expires );
-		echo '</td>';
-
-		echo '</tr>';
+		echo '</div>'; // meta grid
+		echo '</div>'; // body
+		echo '</article>';
 	}
 
-	echo '</tbody>';
-	echo '</table>';
-	echo '</div>';
-	echo '</div>';
-	echo '</div>';
+	echo '</div>'; // grid
+	echo '</div>'; // page
 } );
 
 /**
