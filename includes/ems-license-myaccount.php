@@ -4,14 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * 1. Register new endpoint /licenses in My Account
+ * Register new endpoint /licenses in My Account.
  */
 add_action( 'init', function() {
 	add_rewrite_endpoint( 'licenses', EP_ROOT | EP_PAGES );
 } );
 
 /**
- * 2. Add tab to My Account navigation
+ * Add tab to My Account navigation.
  */
 add_filter( 'woocommerce_account_menu_items', function( $items ) {
 	$logout = $items['customer-logout'] ?? '';
@@ -51,16 +51,17 @@ function ems_get_license_status_class( $status ) {
 }
 
 /**
- * 3. Render license table in My Account
+ * Render license table in My Account.
  */
 add_action( 'woocommerce_account_licenses_endpoint', function() {
 	$user_id  = get_current_user_id();
 	$licenses = ems_get_user_licenses( $user_id );
 
-	echo '<div class="mc-ems-my-licenses-wrap">';
+	echo '<div class="mc-ems-my-licenses-wrap mc-ems-my-licenses-page">';
 
 	echo '<div class="mc-ems-my-licenses-header">';
-	echo '<h3>' . esc_html__( 'My Licenses', 'ems-license-manager' ) . '</h3>';
+	echo '<h2>' . esc_html__( 'My Licenses', 'ems-license-manager' ) . '</h2>';
+	echo '<p class="mc-ems-my-licenses-subtitle">' . esc_html__( 'Here you can view all licenses associated with your account.', 'ems-license-manager' ) . '</p>';
 	echo '</div>';
 
 	if ( empty( $licenses ) ) {
@@ -71,6 +72,7 @@ add_action( 'woocommerce_account_licenses_endpoint', function() {
 		return;
 	}
 
+	echo '<div class="mc-ems-license-panel">';
 	echo '<div class="mc-ems-license-table-wrap">';
 	echo '<table class="shop_table shop_table_responsive mc-ems-license-table">';
 	echo '<thead><tr>';
@@ -130,10 +132,11 @@ add_action( 'woocommerce_account_licenses_endpoint', function() {
 	echo '</table>';
 	echo '</div>';
 	echo '</div>';
+	echo '</div>';
 } );
 
 /**
- * 4. Fetch all licenses for the current user (all statuses)
+ * Fetch all licenses for the current user.
  *
  * @param int $user_id User ID.
  * @return array
@@ -175,7 +178,7 @@ function ems_get_user_licenses( $user_id ) {
 }
 
 /**
- * 5. Enqueue CSS only on the My Licenses endpoint
+ * Enqueue CSS only on the My Licenses endpoint.
  */
 add_action( 'wp_enqueue_scripts', function() {
 	if ( function_exists( 'is_account_page' ) && is_account_page() && function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'licenses' ) ) {
