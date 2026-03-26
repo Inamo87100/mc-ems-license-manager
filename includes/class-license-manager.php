@@ -14,6 +14,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MC_EMS_License_Manager {
 
 	/**
+	 * Normalize a site URL for storage/comparison.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	protected function normalize_site_url( $url ) {
+		$url = trim( (string) $url );
+
+		if ( '' === $url ) {
+			return '';
+		}
+
+		return trailingslashit( esc_url_raw( $url ) );
+	}
+
+	/**
 	 * Generate a unique license key in the format MC-XXXXX-XXXXX-XXXXX.
 	 *
 	 * @return string
@@ -49,7 +65,6 @@ class MC_EMS_License_Manager {
 			return false;
 		}
 
-		// Generate a key that does not yet exist in the database.
 		do {
 			$license_key = $this->generate_license_key();
 			$exists      = $wpdb->get_var(
@@ -62,15 +77,20 @@ class MC_EMS_License_Manager {
 
 		$now        = current_time( 'mysql' );
 		$expires_at = null;
+
 		if ( ! is_null( $duration ) ) {
-			$duration   = absint( $duration );
-			$expires_at = date( 'Y-m-d H:i:s', strtotime( "+{$duration} days", strtotime( $now ) ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			$duration = absint( $duration );
+			if ( $duration > 0 ) {
+				$expires_at = date( 'Y-m-d H:i:s', strtotime( "+{$duration} days", strtotime( $now ) ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			}
 		}
+
+		$normalized_site = $this->normalize_site_url( $site_url );
 
 		$data = array(
 			'user_id'     => $user_id,
 			'license_key' => $license_key,
-			'site_url'    => $site_url ? esc_url_raw( $site_url ) : null,
+			'site_url'    => '' !== $normalized_site ? $normalized_site : null,
 			'status'      => 'active',
 			'created_at'  => $now,
 			'expires_at'  => $expires_at,
@@ -79,7 +99,6 @@ class MC_EMS_License_Manager {
 
 		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%s' );
 
-		// Only include product_id when it is explicitly set to avoid inserting 0 instead of NULL.
 		if ( ! is_null( $product_id ) ) {
 			$data['product_id'] = absint( $product_id );
 			$formats[]          = '%d';
@@ -123,7 +142,7 @@ class MC_EMS_License_Manager {
 
 		$license = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE license_key = %s',
+				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE license_key = %s LIMIT 1',
 				sanitize_text_field( $license_key )
 			),
 			ARRAY_A
@@ -133,37 +152,38 @@ class MC_EMS_License_Manager {
 			return false;
 		}
 
-		// Check user.
 		if ( $user_id && (int) $license['user_id'] !== (int) $user_id ) {
 			return false;
 		}
 
-		$incoming_site = $site_url ? trailingslashit( esc_url_raw( $site_url ) ) : '';
-		$stored_site   = ! empty( $license['site_url'] ) ? trailingslashit( esc_url_raw( $license['site_url'] ) ) : '';
+		$incoming_site = $this->normalize_site_url( $site_url );
+		$stored_site   = ! empty( $license['site_url'] ) ? $this->normalize_site_url( $license['site_url'] ) : '';
 
-		// First valid use binds the license to the requesting site.
-		if ( $incoming_site && empty( $stored_site ) && ! empty( $license['id'] ) ) {
-			$this->update_site_url( (int) $license['id'], $incoming_site );
-			$license['site_url'] = $incoming_site;
-			$stored_site         = $incoming_site;
+		// Prima attivazione valida: se la licenza non è ancora associata a un dominio,
+		// viene legata automaticamente al dominio che la usa per primo.
+		if ( '' !== $incoming_site && '' === $stored_site && ! empty( $license['id'] ) ) {
+			$updated = $this->update_site_url( (int) $license['id'], $incoming_site );
+
+			if ( $updated ) {
+				$license['site_url'] = $incoming_site;
+				$stored_site         = $incoming_site;
+			}
 		}
 
-		// Block use on a different site once the license has been bound.
-		if ( $incoming_site && $stored_site && $incoming_site !== $stored_site ) {
+		// Se è già associata a un dominio diverso, blocca l'uso.
+		if ( '' !== $incoming_site && '' !== $stored_site && $incoming_site !== $stored_site ) {
 			return false;
 		}
 
-		// Check status.
-		if ( 'active' !== $license['status'] ) {
+		if ( ! isset( $license['status'] ) || 'active' !== $license['status'] ) {
 			return false;
 		}
 
-		// Check expiry.
 		if ( ! empty( $license['expires_at'] ) ) {
-			$now     = strtotime( current_time( 'mysql' ) );
-			$expires = strtotime( $license['expires_at'] );
-			if ( $expires < $now ) {
-				// Auto-mark as expired.
+			$now_ts     = strtotime( current_time( 'mysql' ) );
+			$expires_ts = strtotime( $license['expires_at'] );
+
+			if ( $expires_ts && $expires_ts < $now_ts ) {
 				$this->update_status( (int) $license['id'], 'expired' );
 				return false;
 			}
@@ -183,9 +203,9 @@ class MC_EMS_License_Manager {
 		global $wpdb;
 
 		$license_id = absint( $license_id );
-		$site_url   = $site_url ? trailingslashit( esc_url_raw( $site_url ) ) : '';
+		$site_url   = $this->normalize_site_url( $site_url );
 
-		if ( ! $license_id || empty( $site_url ) ) {
+		if ( ! $license_id || '' === $site_url ) {
 			return false;
 		}
 
@@ -211,6 +231,7 @@ class MC_EMS_License_Manager {
 	 */
 	public function get_license( $license_id ) {
 		global $wpdb;
+
 		return $wpdb->get_row(
 			$wpdb->prepare(
 				'SELECT * FROM ' . MC_EMS_Database::table_name() . ' WHERE id = %d',
@@ -223,7 +244,7 @@ class MC_EMS_License_Manager {
 	/**
 	 * Get all licenses, optionally filtered.
 	 *
-	 * @param array $args  Optional query args: status, user_id, search, orderby, order, per_page, paged.
+	 * @param array $args Optional query args: status, user_id, search, orderby, order, per_page, paged.
 	 * @return array
 	 */
 	public function get_licenses( $args = array() ) {
@@ -238,6 +259,7 @@ class MC_EMS_License_Manager {
 			'per_page' => 20,
 			'paged'    => 1,
 		);
+
 		$args = wp_parse_args( $args, $defaults );
 
 		$where  = array( '1=1' );
@@ -261,13 +283,11 @@ class MC_EMS_License_Manager {
 		}
 
 		$allowed_orderby = array( 'id', 'user_id', 'license_key', 'status', 'created_at', 'expires_at' );
-		$orderby = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'id';
-		$order   = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
-
-		$per_page = max( 1, absint( $args['per_page'] ) );
-		$offset   = ( max( 1, absint( $args['paged'] ) ) - 1 ) * $per_page;
-
-		$where_sql = implode( ' AND ', $where );
+		$orderby         = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'id';
+		$order           = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
+		$per_page        = max( 1, absint( $args['per_page'] ) );
+		$offset          = ( max( 1, absint( $args['paged'] ) ) - 1 ) * $per_page;
+		$where_sql       = implode( ' AND ', $where );
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
 		if ( $params ) {
@@ -301,6 +321,7 @@ class MC_EMS_License_Manager {
 			'user_id' => 0,
 			'search'  => '',
 		);
+
 		$args = wp_parse_args( $args, $defaults );
 
 		$where  = array( '1=1' );
@@ -347,13 +368,14 @@ class MC_EMS_License_Manager {
 	 * Update the status of a license.
 	 *
 	 * @param int    $license_id License ID.
-	 * @param string $status     New status: 'active', 'inactive', or 'expired'.
+	 * @param string $status     New status: active, inactive, expired.
 	 * @return bool
 	 */
 	public function update_status( $license_id, $status ) {
 		global $wpdb;
 
 		$allowed = array( 'active', 'inactive', 'expired' );
+
 		if ( ! in_array( $status, $allowed, true ) ) {
 			return false;
 		}
@@ -376,7 +398,7 @@ class MC_EMS_License_Manager {
 	 * Extend a license's expiration by a number of days.
 	 *
 	 * @param int $license_id License ID.
-	 * @param int $days       Number of days to extend.
+	 * @param int $days Number of days to extend.
 	 * @return bool
 	 */
 	public function extend_license( $license_id, $days ) {
@@ -392,7 +414,7 @@ class MC_EMS_License_Manager {
 			return false;
 		}
 
-		$base       = ( ! empty( $license['expires_at'] ) ) ? $license['expires_at'] : current_time( 'mysql' );
+		$base       = ! empty( $license['expires_at'] ) ? $license['expires_at'] : current_time( 'mysql' );
 		$expires_at = date( 'Y-m-d H:i:s', strtotime( "+{$days} days", strtotime( $base ) ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 
 		$result = $wpdb->update(
