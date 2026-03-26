@@ -1,153 +1,156 @@
-/* Page-level override */
-.woocommerce-account .woocommerce {
-	display: flex;
-	gap: 40px;
-	align-items: flex-start;
-}
-
-.woocommerce-account .woocommerce-MyAccount-navigation {
-	flex: 0 0 220px;
-	width: 220px;
-	max-width: 220px;
-}
-
-.woocommerce-account .woocommerce-MyAccount-content {
-	flex: 1 1 auto;
-	width: auto;
-	max-width: none;
-	min-width: 0;
-}
-
-/* Licenses page wrapper */
-.woocommerce-account .mc-ems-my-licenses-page {
+/* Page wrapper */
+.woocommerce-account .mc-ems-licenses-page {
 	width: 100%;
 	max-width: 100%;
 }
 
-.woocommerce-account .mc-ems-my-licenses-header {
-	margin-bottom: 20px;
+/* Hero */
+.woocommerce-account .mc-ems-licenses-hero {
+	margin-bottom: 28px;
 }
 
-.woocommerce-account .mc-ems-my-licenses-header h2 {
+.woocommerce-account .mc-ems-licenses-hero h2 {
 	margin: 0 0 8px;
-	font-size: 44px;
+	font-size: 42px;
 	line-height: 1.1;
 	font-weight: 700;
 }
 
-.woocommerce-account .mc-ems-my-licenses-subtitle {
+.woocommerce-account .mc-ems-licenses-hero p {
 	margin: 0;
 	font-size: 15px;
-	line-height: 1.5;
-	opacity: 0.8;
+	line-height: 1.6;
+	opacity: 0.78;
 }
 
-/* Panel */
-.woocommerce-account .mc-ems-license-panel {
-	width: 100%;
-	background: #fff;
+/* Empty state */
+.woocommerce-account .mc-ems-empty-state {
+	background: #ffffff;
 	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 18px;
+	padding: 28px;
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-	overflow: hidden;
 }
 
-/* Scroll wrapper */
-.woocommerce-account .mc-ems-license-table-wrap {
-	width: 100%;
-	overflow-x: auto;
-	-webkit-overflow-scrolling: touch;
+.woocommerce-account .mc-ems-empty-state-inner h3 {
+	margin: 0 0 8px;
+	font-size: 22px;
+	line-height: 1.2;
 }
 
-/* Table */
-.woocommerce-account table.mc-ems-license-table {
-	width: 100%;
-	min-width: 1180px;
-	border-collapse: collapse;
-	table-layout: fixed;
-	background: #fff;
+.woocommerce-account .mc-ems-empty-state-inner p {
 	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
 }
 
-.woocommerce-account table.mc-ems-license-table thead th {
-	padding: 18px 22px;
-	font-size: 12px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	text-align: left;
-	white-space: nowrap;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-	background: #fcfcfc;
+/* Grid */
+.woocommerce-account .mc-ems-license-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 22px;
+	width: 100%;
 }
 
-.woocommerce-account table.mc-ems-license-table td {
-	padding: 20px 22px;
-	font-size: 16px;
-	line-height: 1.55;
-	text-align: left;
-	vertical-align: middle;
+/* Card */
+.woocommerce-account .mc-ems-license-card {
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 20px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+	overflow: hidden;
+	transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.woocommerce-account .mc-ems-license-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 14px 34px rgba(0, 0, 0, 0.07);
+}
+
+.woocommerce-account .mc-ems-license-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 16px;
+	padding: 22px 24px 18px;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.woocommerce-account table.mc-ems-license-table tbody tr:last-child td {
-	border-bottom: 0;
+.woocommerce-account .mc-ems-license-card-product h3 {
+	margin: 0;
+	font-size: 24px;
+	line-height: 1.35;
+	font-weight: 700;
+	word-break: break-word;
 }
 
-/* Column sizing */
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-product {
-	width: 30%;
-	min-width: 320px;
+.woocommerce-account .mc-ems-license-card-body {
+	padding: 22px 24px 24px;
 }
 
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-key {
-	width: 18%;
-	min-width: 220px;
+/* Blocks */
+.woocommerce-account .mc-ems-license-block {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
 }
 
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-site {
-	width: 24%;
-	min-width: 260px;
+.woocommerce-account .mc-ems-license-block-full {
+	margin-bottom: 20px;
 }
 
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-status {
-	width: 10%;
-	min-width: 120px;
+.woocommerce-account .mc-ems-license-label {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	opacity: 0.72;
 }
 
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-created,
-.woocommerce-account table.mc-ems-license-table .mc-ems-col-expires {
-	width: 9%;
-	min-width: 130px;
-	white-space: nowrap;
-}
-
-/* Product column */
-.woocommerce-account .mc-ems-col-product {
-	font-size: 17px;
+.woocommerce-account .mc-ems-license-value {
+	font-size: 16px;
 	line-height: 1.6;
+	word-break: break-word;
 }
 
 /* License key */
 .woocommerce-account .mc-ems-license-key {
 	display: inline-block;
+	width: 100%;
+	box-sizing: border-box;
 	font-family: Consolas, Monaco, monospace;
 	font-size: 15px;
-	line-height: 1.6;
+	line-height: 1.65;
 	background: #f6f7f8;
-	padding: 8px 10px;
-	border-radius: 8px;
+	padding: 12px 14px;
+	border-radius: 10px;
 	color: #1d2327;
 	word-break: break-word;
 	white-space: normal;
 }
 
-/* Site URL */
-.woocommerce-account .mc-ems-col-site a {
+/* Meta grid */
+.woocommerce-account .mc-ems-license-meta-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18px 22px;
+}
+
+.woocommerce-account .mc-ems-license-meta-grid .mc-ems-license-block:first-child {
+	grid-column: 1 / -1;
+}
+
+/* Link */
+.woocommerce-account .mc-ems-license-link {
+	font-size: 16px;
+	line-height: 1.6;
 	text-decoration: none;
 	word-break: break-word;
 }
 
-.woocommerce-account .mc-ems-col-site a:hover {
+.woocommerce-account .mc-ems-license-link:hover {
 	text-decoration: underline;
 }
 
@@ -156,7 +159,7 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	padding: 7px 12px;
+	padding: 8px 12px;
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 700;
@@ -184,53 +187,38 @@
 	color: #344054;
 }
 
-/* Empty state */
-.woocommerce-account .mc-ems-no-licenses {
-	margin-top: 16px;
-}
-
 /* Tablet */
 @media (max-width: 1024px) {
-	.woocommerce-account .woocommerce {
-		gap: 24px;
-	}
-
-	.woocommerce-account .woocommerce-MyAccount-navigation {
-		flex: 0 0 200px;
-		width: 200px;
-		max-width: 200px;
-	}
-
-	.woocommerce-account .mc-ems-my-licenses-header h2 {
+	.woocommerce-account .mc-ems-licenses-hero h2 {
 		font-size: 34px;
 	}
 
-	.woocommerce-account table.mc-ems-license-table {
-		min-width: 1080px;
+	.woocommerce-account .mc-ems-license-card-product h3 {
+		font-size: 21px;
 	}
 }
 
 /* Mobile */
-@media (max-width: 768px) {
-	.woocommerce-account .woocommerce {
-		display: block;
-	}
-
-	.woocommerce-account .woocommerce-MyAccount-navigation,
-	.woocommerce-account .woocommerce-MyAccount-content {
-		width: 100%;
-		max-width: 100%;
-	}
-
-	.woocommerce-account .woocommerce-MyAccount-navigation {
-		margin-bottom: 24px;
-	}
-
-	.woocommerce-account .mc-ems-my-licenses-header h2 {
+@media (max-width: 640px) {
+	.woocommerce-account .mc-ems-licenses-hero h2 {
 		font-size: 28px;
 	}
 
-	.woocommerce-account table.mc-ems-license-table {
-		min-width: 980px;
+	.woocommerce-account .mc-ems-license-grid {
+		grid-template-columns: 1fr;
+		gap: 18px;
+	}
+
+	.woocommerce-account .mc-ems-license-card-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.woocommerce-account .mc-ems-license-meta-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.woocommerce-account .mc-ems-license-meta-grid .mc-ems-license-block:first-child {
+		grid-column: auto;
 	}
 }
