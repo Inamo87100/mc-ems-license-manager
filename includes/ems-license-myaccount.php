@@ -27,270 +27,40 @@ add_filter( 'woocommerce_account_menu_items', function( $items ) {
 } );
 
 /**
- * Print inline styles only on the licenses endpoint.
- */
-add_action( 'wp_head', function() {
-	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
-		return;
-	}
-
-	if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'licenses' ) ) {
-		return;
-	}
-	?>
-	<style id="mc-ems-my-licenses-inline-style">
-		.woocommerce-account .mcems-licenses-page,
-		.woocommerce-account .mcems-licenses-page * {
-			box-sizing: border-box;
-		}
-
-		.woocommerce-account .mcems-licenses-page {
-			width: 100%;
-			max-width: 100%;
-		}
-
-		.woocommerce-account .mcems-licenses-hero {
-			margin: 0 0 28px;
-		}
-
-		.woocommerce-account .mcems-licenses-title {
-			margin: 0 0 10px;
-			font-size: 42px;
-			line-height: 1.08;
-			font-weight: 800;
-			letter-spacing: -0.02em;
-			color: #111827;
-		}
-
-		.woocommerce-account .mcems-licenses-subtitle {
-			margin: 0;
-			font-size: 16px;
-			line-height: 1.65;
-			color: #6b7280;
-		}
-
-		.woocommerce-account .mcems-licenses-list {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 22px;
-			width: 100%;
-		}
-
-		.woocommerce-account .mcems-license-card {
-			display: block;
-			width: 100%;
-			background: #ffffff;
-			border: 1px solid #e5e7eb;
-			border-radius: 22px;
-			padding: 24px 24px 22px;
-			box-shadow: 0 10px 30px rgba(17, 24, 39, 0.05);
-		}
-
-		.woocommerce-account .mcems-license-card-header {
-			display: flex;
-			align-items: flex-start;
-			justify-content: space-between;
-			gap: 16px;
-			margin-bottom: 18px;
-		}
-
-		.woocommerce-account .mcems-license-product {
-			margin: 0;
-			font-size: 30px;
-			line-height: 1.2;
-			font-weight: 800;
-			letter-spacing: -0.02em;
-			color: #111827;
-			word-break: break-word;
-		}
-
-		.woocommerce-account .mcems-license-badge {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			padding: 8px 12px;
-			border-radius: 999px;
-			font-size: 12px;
-			font-weight: 700;
-			line-height: 1;
-			white-space: nowrap;
-			border: 1px solid transparent;
-		}
-
-		.woocommerce-account .mcems-license-badge.is-active {
-			background: #ecfdf3;
-			color: #067647;
-			border-color: #abefc6;
-		}
-
-		.woocommerce-account .mcems-license-badge.is-expired {
-			background: #fef3f2;
-			color: #b42318;
-			border-color: #fecdca;
-		}
-
-		.woocommerce-account .mcems-license-badge.is-inactive,
-		.woocommerce-account .mcems-license-badge.is-unknown {
-			background: #f8fafc;
-			color: #475467;
-			border-color: #e5e7eb;
-		}
-
-		.woocommerce-account .mcems-license-key-wrap {
-			margin-bottom: 20px;
-		}
-
-		.woocommerce-account .mcems-label {
-			display: block;
-			margin: 0 0 8px;
-			font-size: 12px;
-			line-height: 1.2;
-			font-weight: 700;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
-			color: #6b7280;
-		}
-
-		.woocommerce-account .mcems-license-key-box {
-			display: block;
-			width: 100%;
-			padding: 14px 16px;
-			border-radius: 14px;
-			background: #f8fafc;
-			border: 1px solid #e5e7eb;
-			font-family: Consolas, Monaco, monospace;
-			font-size: 16px;
-			line-height: 1.6;
-			color: #111827;
-			word-break: break-word;
-		}
-
-		.woocommerce-account .mcems-license-grid {
-			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 16px;
-		}
-
-		.woocommerce-account .mcems-license-item {
-			display: block;
-			padding: 16px 16px 14px;
-			border-radius: 16px;
-			background: #ffffff;
-			border: 1px solid #eef2f7;
-		}
-
-		.woocommerce-account .mcems-license-value,
-		.woocommerce-account .mcems-license-value a {
-			font-size: 16px;
-			line-height: 1.6;
-			color: #111827;
-			text-decoration: none;
-			word-break: break-word;
-		}
-
-		.woocommerce-account .mcems-license-value a:hover {
-			text-decoration: underline;
-		}
-
-		.woocommerce-account .mcems-empty {
-			padding: 26px;
-			background: #ffffff;
-			border: 1px solid #e5e7eb;
-			border-radius: 20px;
-			box-shadow: 0 10px 30px rgba(17, 24, 39, 0.05);
-		}
-
-		.woocommerce-account .mcems-empty-title {
-			margin: 0 0 8px;
-			font-size: 22px;
-			font-weight: 700;
-			color: #111827;
-		}
-
-		.woocommerce-account .mcems-empty-text {
-			margin: 0;
-			font-size: 15px;
-			line-height: 1.6;
-			color: #6b7280;
-		}
-
-		@media (max-width: 900px) {
-			.woocommerce-account .mcems-license-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.woocommerce-account .mcems-license-card-header {
-				flex-direction: column;
-				align-items: flex-start;
-			}
-
-			.woocommerce-account .mcems-license-product {
-				font-size: 24px;
-			}
-
-			.woocommerce-account .mcems-licenses-title {
-				font-size: 34px;
-			}
-		}
-
-		@media (max-width: 640px) {
-			.woocommerce-account .mcems-license-card {
-				padding: 20px 18px;
-				border-radius: 18px;
-			}
-
-			.woocommerce-account .mcems-licenses-title {
-				font-size: 28px;
-			}
-
-			.woocommerce-account .mcems-license-product {
-				font-size: 22px;
-			}
-		}
-	</style>
-	<?php
-} );
-
-/**
- * Returns the CSS class for the license status badge.
+ * Returns HTML badge for status.
  *
  * @param string $status License status.
  * @return string
  */
-function ems_get_license_status_class( $status ) {
+function ems_render_license_status_badge( $status ) {
 	$status = strtolower( (string) $status );
+	$label  = ucfirst( $status ?: 'Unknown' );
+
+	$style = 'display:inline-block;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;line-height:1;white-space:nowrap;';
 
 	switch ( $status ) {
 		case 'active':
-			return 'is-active';
-		case 'expired':
-			return 'is-expired';
-		case 'inactive':
-			return 'is-inactive';
-		default:
-			return 'is-unknown';
-	}
-}
+			$label = __( 'Active', 'ems-license-manager' );
+			$style .= 'background:#e7f6ec;color:#1f7a3e;border:1px solid #b7e4c7;';
+			break;
 
-/**
- * Returns a readable status label.
- *
- * @param string $status License status.
- * @return string
- */
-function ems_get_license_status_label( $status ) {
-	$status = strtolower( (string) $status );
-
-	switch ( $status ) {
-		case 'active':
-			return __( 'Active', 'ems-license-manager' );
 		case 'expired':
-			return __( 'Expired', 'ems-license-manager' );
+			$label = __( 'Expired', 'ems-license-manager' );
+			$style .= 'background:#fdecec;color:#b42318;border:1px solid #f5c2c7;';
+			break;
+
 		case 'inactive':
-			return __( 'Inactive', 'ems-license-manager' );
+			$label = __( 'Inactive', 'ems-license-manager' );
+			$style .= 'background:#f2f4f7;color:#475467;border:1px solid #d0d5dd;';
+			break;
+
 		default:
-			return __( 'Unknown', 'ems-license-manager' );
+			$label = __( 'Unknown', 'ems-license-manager' );
+			$style .= 'background:#f2f4f7;color:#475467;border:1px solid #d0d5dd;';
+			break;
 	}
+
+	return '<span style="' . esc_attr( $style ) . '">' . esc_html( $label ) . '</span>';
 }
 
 /**
@@ -300,23 +70,34 @@ add_action( 'woocommerce_account_licenses_endpoint', function() {
 	$user_id  = get_current_user_id();
 	$licenses = ems_get_user_licenses( $user_id );
 
-	echo '<div class="mcems-licenses-page">';
-
-	echo '<div class="mcems-licenses-hero">';
-	echo '<h2 class="mcems-licenses-title">' . esc_html__( 'My Licenses', 'ems-license-manager' ) . '</h2>';
-	echo '<p class="mcems-licenses-subtitle">' . esc_html__( 'View all licenses associated with your account.', 'ems-license-manager' ) . '</p>';
-	echo '</div>';
+	echo '<div style="width:100%;max-width:100%;">';
+	echo '<h2 style="margin:0 0 10px 0;font-size:42px;line-height:1.1;font-weight:800;color:#111827;">' . esc_html__( 'My Licenses', 'ems-license-manager' ) . '</h2>';
+	echo '<p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#6b7280;">' . esc_html__( 'View all licenses associated with your account.', 'ems-license-manager' ) . '</p>';
 
 	if ( empty( $licenses ) ) {
-		echo '<div class="mcems-empty">';
-		echo '<h3 class="mcems-empty-title">' . esc_html__( 'No licenses found', 'ems-license-manager' ) . '</h3>';
-		echo '<p class="mcems-empty-text">' . esc_html__( 'There are currently no licenses associated with your account.', 'ems-license-manager' ) . '</p>';
+		echo '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:22px;">';
+		echo '<strong style="display:block;margin-bottom:8px;font-size:18px;color:#111827;">' . esc_html__( 'No licenses found', 'ems-license-manager' ) . '</strong>';
+		echo '<span style="font-size:15px;line-height:1.6;color:#6b7280;">' . esc_html__( 'There are currently no licenses associated with your account.', 'ems-license-manager' ) . '</span>';
 		echo '</div>';
 		echo '</div>';
 		return;
 	}
 
-	echo '<div class="mcems-licenses-list">';
+	echo '<div style="width:100%;overflow-x:auto;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,0.04);">';
+	echo '<table style="width:100%;min-width:980px;border-collapse:separate;border-spacing:0;font-size:15px;line-height:1.5;color:#111827;">';
+
+	echo '<thead>';
+	echo '<tr>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'Product', 'ems-license-manager' ) . '</th>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'License Key', 'ems-license-manager' ) . '</th>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'Site URL', 'ems-license-manager' ) . '</th>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'Status', 'ems-license-manager' ) . '</th>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'Created At', 'ems-license-manager' ) . '</th>';
+	echo '<th style="text-align:left;padding:16px 18px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;">' . esc_html__( 'Expiration Date', 'ems-license-manager' ) . '</th>';
+	echo '</tr>';
+	echo '</thead>';
+
+	echo '<tbody>';
 
 	foreach ( $licenses as $lic ) {
 		$created = ! empty( $lic->created_at ) ? date_i18n( 'Y-m-d', strtotime( $lic->created_at ) ) : '-';
@@ -327,48 +108,41 @@ add_action( 'woocommerce_account_licenses_endpoint', function() {
 			$product_label .= ' (#' . absint( $lic->product_id ) . ')';
 		}
 
-		$status_class = ems_get_license_status_class( $lic->status );
-		$status_label = ems_get_license_status_label( $lic->status );
+		echo '<tr>';
 
-		echo '<article class="mcems-license-card">';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:260px;font-weight:600;color:#111827;">';
+		echo esc_html( $product_label );
+		echo '</td>';
 
-		echo '<div class="mcems-license-card-header">';
-		echo '<h3 class="mcems-license-product">' . esc_html( $product_label ) . '</h3>';
-		echo '<span class="mcems-license-badge ' . esc_attr( $status_class ) . '">' . esc_html( $status_label ) . '</span>';
-		echo '</div>';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:220px;">';
+		echo '<code style="display:inline-block;background:#f6f7f8;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-family:Consolas,Monaco,monospace;font-size:14px;line-height:1.5;color:#111827;word-break:break-word;">' . esc_html( $lic->code ) . '</code>';
+		echo '</td>';
 
-		echo '<div class="mcems-license-key-wrap">';
-		echo '<span class="mcems-label">' . esc_html__( 'License Key', 'ems-license-manager' ) . '</span>';
-		echo '<code class="mcems-license-key-box">' . esc_html( $lic->code ) . '</code>';
-		echo '</div>';
-
-		echo '<div class="mcems-license-grid">';
-
-		echo '<div class="mcems-license-item">';
-		echo '<span class="mcems-label">' . esc_html__( 'Site URL', 'ems-license-manager' ) . '</span>';
-		echo '<div class="mcems-license-value">';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:220px;">';
 		if ( ! empty( $lic->site_url ) ) {
-			echo '<a href="' . esc_url( $lic->site_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( untrailingslashit( $lic->site_url ) ) . '</a>';
+			echo '<a href="' . esc_url( $lic->site_url ) . '" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;text-decoration:none;word-break:break-word;">' . esc_html( untrailingslashit( $lic->site_url ) ) . '</a>';
 		} else {
 			echo '-';
 		}
-		echo '</div>';
-		echo '</div>';
+		echo '</td>';
 
-		echo '<div class="mcems-license-item">';
-		echo '<span class="mcems-label">' . esc_html__( 'Created At', 'ems-license-manager' ) . '</span>';
-		echo '<div class="mcems-license-value">' . esc_html( $created ) . '</div>';
-		echo '</div>';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:120px;">';
+		echo ems_render_license_status_badge( $lic->status );
+		echo '</td>';
 
-		echo '<div class="mcems-license-item">';
-		echo '<span class="mcems-label">' . esc_html__( 'Expiration Date', 'ems-license-manager' ) . '</span>';
-		echo '<div class="mcems-license-value">' . esc_html( $expires ) . '</div>';
-		echo '</div>';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:130px;white-space:nowrap;">';
+		echo esc_html( $created );
+		echo '</td>';
 
-		echo '</div>';
-		echo '</article>';
+		echo '<td style="padding:18px;border-bottom:1px solid #eef2f7;vertical-align:top;min-width:130px;white-space:nowrap;">';
+		echo esc_html( $expires );
+		echo '</td>';
+
+		echo '</tr>';
 	}
 
+	echo '</tbody>';
+	echo '</table>';
 	echo '</div>';
 	echo '</div>';
 } );
