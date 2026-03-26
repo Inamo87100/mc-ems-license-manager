@@ -1,12 +1,139 @@
+.mc-ems-my-licenses-wrap {
+	width: 100%;
+	max-width: 100%;
+	margin-bottom: 2rem;
+}
+
+.mc-ems-my-licenses-header {
+	margin-bottom: 1rem;
+}
+
+.mc-ems-my-licenses-header h3 {
+	margin: 0 0 0.25rem;
+	font-size: 1.35rem;
+	line-height: 1.3;
+}
+
+.mc-ems-no-licenses {
+	margin-top: 0.5rem;
+}
+
 .mc-ems-license-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  margin-bottom: 2em;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
 .mc-ems-license-table {
-  width: 100%;
-  min-width: 700px;
-  max-width: 100%;
-  border-collapse: separate;
+	width: 100%;
+	min-width: 980px;
+	border-collapse: collapse;
+	table-layout: auto;
+	background: #fff;
+}
+
+.mc-ems-license-table thead th {
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.mc-ems-license-table th,
+.mc-ems-license-table td {
+	padding: 14px 16px;
+	text-align: left;
+	vertical-align: middle;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mc-ems-license-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.mc-ems-license-table .mc-ems-col-product {
+	min-width: 260px;
+}
+
+.mc-ems-license-table .mc-ems-col-key {
+	min-width: 220px;
+}
+
+.mc-ems-license-table .mc-ems-col-site {
+	min-width: 260px;
+}
+
+.mc-ems-license-table .mc-ems-col-status {
+	min-width: 120px;
+}
+
+.mc-ems-license-table .mc-ems-col-created,
+.mc-ems-license-table .mc-ems-col-expires {
+	min-width: 140px;
+	white-space: nowrap;
+}
+
+.mc-ems-license-key {
+	display: inline-block;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 0.95em;
+	white-space: nowrap;
+	background: #f6f7f8;
+	padding: 4px 8px;
+	border-radius: 6px;
+	color: #1d2327;
+}
+
+.mc-ems-col-site a {
+	word-break: break-word;
+	text-decoration: none;
+}
+
+.mc-ems-col-site a:hover {
+	text-decoration: underline;
+}
+
+.mc-ems-license-status {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.mc-ems-license-status.is-active {
+	background: #e7f6ec;
+	color: #1f7a3e;
+}
+
+.mc-ems-license-status.is-expired {
+	background: #fdecec;
+	color: #b42318;
+}
+
+.mc-ems-license-status.is-inactive {
+	background: #f2f4f7;
+	color: #475467;
+}
+
+.mc-ems-license-status.is-unknown {
+	background: #eef2f6;
+	color: #344054;
+}
+
+@media (max-width: 768px) {
+	.mc-ems-my-licenses-header h3 {
+		font-size: 1.2rem;
+	}
+
+	.mc-ems-license-table th,
+	.mc-ems-license-table td {
+		padding: 12px 14px;
+	}
 }
