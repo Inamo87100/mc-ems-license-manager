@@ -108,10 +108,6 @@ function mcems_rest_build_error_payload( $message, $reason = 'error' ) {
 /**
  * Official REST endpoint for license verification.
  *
- * Accepts:
- * - license_key (required)
- * - site_url (optional but strongly recommended)
- *
  * @param \WP_REST_Request $request Request object.
  * @return \WP_REST_Response
  */
@@ -162,20 +158,9 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 	}
 
 	$manager = new MC_EMS_License_Manager();
-
-	/*
-	 * First try the official validation flow.
-	 * This method already:
-	 * - checks existence
-	 * - checks bound site mismatch
-	 * - binds first site usage if site_url is provided and DB site_url is empty
-	 * - checks active status
-	 * - auto-expires licenses when needed
-	 */
 	$license = $manager->validate_license( $license_key, 0, $site_url );
 
 	if ( $license ) {
-		// Ensure site_url in returned payload is normalized after possible first activation binding.
 		if ( ! empty( $license['id'] ) ) {
 			$refreshed = $manager->get_license( (int) $license['id'] );
 			if ( is_array( $refreshed ) && ! empty( $refreshed ) ) {
@@ -193,9 +178,6 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 		);
 	}
 
-	/*
-	 * If validate_license() failed, inspect the row directly to determine why.
-	 */
 	$row = $wpdb->get_row(
 		$wpdb->prepare(
 			"SELECT * FROM {$table} WHERE license_key = %s LIMIT 1",
@@ -217,7 +199,6 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 
 	$stored_site = ! empty( $row['site_url'] ) ? mcems_rest_normalize_site_url( $row['site_url'] ) : '';
 
-	// Different domain than the one already bound.
 	if ( '' !== $site_url && '' !== $stored_site && $site_url !== $stored_site ) {
 		return rest_ensure_response(
 			mcems_rest_build_license_payload(
@@ -229,7 +210,6 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 		);
 	}
 
-	// Not active.
 	if ( isset( $row['status'] ) && 'active' !== $row['status'] ) {
 		$status_db = (string) $row['status'];
 
@@ -254,7 +234,6 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 		);
 	}
 
-	// Expiry check if status is still active but date is already past.
 	if ( ! empty( $row['expires_at'] ) ) {
 		$now_ts     = strtotime( current_time( 'mysql' ) );
 		$expires_ts = strtotime( $row['expires_at'] );
@@ -276,7 +255,6 @@ function mcems_rest_check_license_official( \WP_REST_Request $request ) {
 		}
 	}
 
-	// Generic fallback.
 	return rest_ensure_response(
 		mcems_rest_build_license_payload(
 			$row,
